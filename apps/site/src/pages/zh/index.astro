@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Hero from '../../components/Hero.astro';
+---
+<BaseLayout title="大和米蕈 Biobran | 中国官网" description="大和米蕈Biobran 中国官网（移动优先，强SEO）" lang="zh">
+  <Fragment slot="header"><Header /></Fragment>
+  <Hero title="大和米蕈 Biobran" subtitle="重点入口：‘临床文献库’与‘专家/会议’" />
+  <section class="mx-auto max-w-7xl px-4 py-12">
+    <div class="grid md:grid-cols-2 gap-6">
+      <a class="block p-6 rounded-lg border hover:shadow-card" href="/daiwa-cn-site/zh/biobran/">
+        <h3 class="text-xl font-semibold">产品总览</h3><p class="mt-2 text-neutral-600">成分/规格/FAQ/合规声明</p>
+      </a>
+      <a class="block p-6 rounded-lg border hover:shadow-card" href="/daiwa-cn-site/zh/biobran/medical/papers/">
+        <h3 class="text-xl font-semibold">临床文献库</h3><p class="mt-2 text-neutral-600">检索/筛选；每篇详情静态可收录</p>
+      </a>
+      <a class="block p-6 rounded-lg border hover:shadow-card" href="/daiwa-cn-site/zh/biobran/medical/experts/">
+        <h3 class="text-xl font-semibold">专家与会议</h3><p class="mt-2 text-neutral-600">专家目录与会议年表</p>
+      </a>
+      <a class="block p-6 rounded-lg border hover:shadow-card" href="/daiwa-cn-site/zh/wiki/">
+        <h3 class="text-xl font-semibold">术语 Wiki</h3><p class="mt-2 text-neutral-600">名词解释与自动内链</p>
+      </a>
+    </div>
+  </section>
+  <Fragment slot="footer"><Footer /></Fragment>
+</BaseLayout>

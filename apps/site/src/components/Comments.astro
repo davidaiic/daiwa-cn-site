@@ -1,0 +1,40 @@
+---
+const { articleId } = Astro.props;
+const base = import.meta.env.BASE_URL || '/';
+const listApi = base + 'api/comment-list?articleId=' + encodeURIComponent(articleId || '');
+const postApi = base + 'api/comment-post';
+---
+<section class="mt-10">
+  <h2 class="text-xl font-semibold">评论</h2>
+  <div id="comments"></div>
+  <button id="loadComments" class="mt-3 px-4 py-2 rounded bg-brand text-white">加载评论</button>
+</section>
+
+<script is:inline>
+  const loadBtn = document.getElementById('loadComments');
+  const mount = document.getElementById('comments');
+  async function xss(s){ return String(s).replace(/[<>&]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[m])); }
+  loadBtn.addEventListener('click', async () => {
+    loadBtn.disabled = true;
+    const res = await fetch({listApi});
+    const json = await res.json();
+    const items = json.data || [];
+    mount.innerHTML = `
+      <div class="space-y-3">
+        ${items.map(it => `<div class="p-3 border rounded"><div class="text-sm text-neutral-600">${new Date(it.createdAt).toLocaleString()}</div><div class="mt-1">${(it.content||'').replace(/[<>&]/g,s=>({ '<':'&lt;','>':'&gt;','&':'&amp;' }[s]))}</div></div>`).join('')}
+      </div>
+      <form id="cform" class="mt-4 space-y-2">
+        <textarea name="content" required placeholder="写下你的看法（审核后可见）" class="w-full border p-2 rounded"></textarea>
+        <input name="author" placeholder="称呼（可选）" class="border p-2 rounded" />
+        <button class="px-4 py-2 rounded bg-brand text-white">提交</button>
+      </form>`;
+    document.getElementById('cform').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const payload = { articleId: {articleId}, author: fd.get('author')||'', content: fd.get('content')||'' };
+      const r = await fetch({postApi}, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const jr = await r.json();
+      alert(jr.ok ? '已提交，待审核' : ('提交失败：' + (jr.msg||'')));
+    });
+  });
+</script>

@@ -1,0 +1,14 @@
+---
+import { withBase } from '../lib/url';
+const year = new Date().getFullYear();
+---
+<footer class="border-t">
+  <div class="mx-auto max-w-7xl px-4 py-10 text-sm text-neutral-500">
+    <nav class="flex flex-wrap gap-4">
+      <a href={withBase('/zh/')} class="hover:text-brand">Ê×Ò³</a>
+      <a href={withBase('/zh/policy/privacy')} class="hover:text-brand">ÒþË½</a>
+      <a href={withBase('/zh/sitemap')} class="hover:text-brand">Õ¾µãµØÍ¼</a>
+    </nav>
+    <div class="mt-2">? {year} Daiwa Pharm China. All rights reserved.</div>
+  </div>
+</footer>

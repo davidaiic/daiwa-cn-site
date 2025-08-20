@@ -1,0 +1,43 @@
+{
+  "version": "2.0",
+  "envId": "{{env.envId}}",
+  "framework": {
+    "name": "daiwa-pharmaceutical-china-site",
+    "plugins": {
+      "web": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "installCommand": "npm ci || npm i",
+          "buildCommand": "npm run build",
+          "outputPath": "apps/site/dist",
+          "cloudPath": "/daiwa-cn-site/", // 关键：部署到子目录
+          "ignore": [ ".git", ".github", "node_modules", "cloudbaserc.js" ]
+        }
+      },
+      "fn": {
+        "use": "@cloudbase/framework-plugin-function",
+        "inputs": {
+          "functionRootPath": "functions",
+          "functions": [
+            {
+              "name": "comment-post",
+              "installDependency": true,
+              "timeout": 10,
+              "memorySize": 256
+            },
+            {
+              "name": "comment-list",
+              "installDependency": true,
+              "timeout": 10,
+              "memorySize": 256
+            }
+          ],
+          "servicePaths": {
+            "comment-post": "/daiwa-cn-site/api/comment-post",
+            "comment-list": "/daiwa-cn-site/api/comment-list"
+          }
+        }
+      }
+    }
+  }
+}

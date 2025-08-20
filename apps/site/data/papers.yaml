@@ -1,0 +1,27 @@
+- id: doi-10-1000-xyz
+  title: "Biobran (MGN-3) on Immune Modulation in Adults..."
+  authors: ["Sato K", "Tanaka M", "Wang J"]
+  journal: "Journal of Nutraceutical Research"
+  year: 2021
+  doi: "10.1000/xyz"
+  url: "https://doi.org/10.1000/xyz"
+  study_type: "Randomized Controlled Trial"
+  population: "Adults, n=120"
+  outcomes:
+    - "Primary: NK cell activity"
+    - "Secondary: QOL score"
+  keywords: ["Biobran", "MGN-3", "immune"]
+  abstract: "£¨ÕªÒªÊ¾Àý£©"
+
+- id: pmid-12345678
+  title: "A Review of Rice Bran Arabinoxylan Compound..."
+  authors: ["Liu H", "Chen Y"]
+  journal: "Nutrients"
+  year: 2019
+  doi: ""
+  url: "https://pubmed.ncbi.nlm.nih.gov/12345678/"
+  study_type: "Review"
+  population: ""
+  outcomes: []
+  keywords: ["review", "arabinoxylan"]
+  abstract: ""

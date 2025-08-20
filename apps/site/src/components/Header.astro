@@ -1,0 +1,21 @@
+---
+import { withBase } from '../lib/url';
+const nav = [
+  { href: '/zh/', label: '首页' },
+  { href: '/zh/biobran/', label: 'Biobran' },
+  { href: '/zh/biobran/medical/papers/', label: '临床文献库' },
+  { href: '/zh/biobran/medical/experts/', label: '专家与会议' },
+  { href: '/zh/columns/', label: '专栏' },
+  { href: '/zh/wiki/', label: '术语' },
+  { href: '/zh/news/', label: '新闻' },
+  { href: '/zh/about/', label: '关于' }
+];
+---
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
+  <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
+    <a href={withBase('/zh/')} class="font-semibold text-[18px] text-brand">Daiwa CN</a>
+    <nav class="hidden md:flex gap-6">
+      {nav.map(i => <a href={withBase(i.href)} class="hover:text-brand">{i.label}</a>)}
+    </nav>
+  </div>
+</header>

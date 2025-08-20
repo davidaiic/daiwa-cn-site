@@ -1,0 +1,56 @@
+---
+import BaseLayout from '../../../../../layouts/BaseLayout.astro';
+import Header from '../../../../../components/Header.astro';
+import Footer from '../../../../../components/Footer.astro';
+import { withBase } from '../../../../../lib/url';
+const pageTitle = '临床文献库';
+---
+<BaseLayout title={pageTitle} description="Biobran 临床文献库" lang="zh">
+  <Fragment slot="header"><Header /></Fragment>
+
+  <section class="mx-auto max-w-7xl px-4 py-10">
+    <h1 class="text-3xl md:text-5xl font-semibold">{pageTitle}</h1>
+    <div class="mt-6 grid gap-3 md:grid-cols-3">
+      <input id="q" placeholder="关键词 / 标题 / 作者" class="border p-2 rounded" />
+      <input id="year" type="number" placeholder="年份" class="border p-2 rounded" />
+      <button id="search" class="px-4 py-2 rounded bg-brand text-white">搜索</button>
+    </div>
+    <div id="list" class="mt-8 grid gap-4"></div>
+  </section>
+
+  <script is:inline>
+    const api = new URL(import.meta.env.BASE_URL + 'api/papers.json', location.origin).toString();
+    const list = document.getElementById('list');
+    let cache = [];
+    async function load() {
+      const res = await fetch(api);
+      const json = await res.json();
+      cache = json.data || [];
+      render(cache);
+    }
+    function render(items) {
+      list.innerHTML = items.map(p => `
+        <a class="block p-4 border rounded hover:shadow-card" href="${import.meta.env.BASE_URL}zh/biobran/medical/papers/${p.slug}/">
+          <div class="text-lg font-semibold">${p.title}</div>
+          <div class="text-sm text-neutral-600 mt-1">${(p.authors||[]).join(', ')} · ${p.journal||''} · ${p.year||''}</div>
+          <div class="text-sm mt-2">${(p.keywords||[]).slice(0,5).join(' · ')}</div>
+        </a>
+      `).join('');
+    }
+    document.getElementById('search').addEventListener('click', () => {
+      const q = (document.getElementById('q').value || '').toLowerCase();
+      const year = document.getElementById('year').value;
+      let items = cache;
+      if (q) items = items.filter(p =>
+        (p.title||'').toLowerCase().includes(q) ||
+        (p.authors||[]).join(' ').toLowerCase().includes(q) ||
+        (p.keywords||[]).join(' ').toLowerCase().includes(q)
+      );
+      if (year) items = items.filter(p => String(p.year||'') === String(year));
+      render(items);
+    });
+    load();
+  </script>
+
+  <Fragment slot="footer"><Footer /></Fragment>
+</BaseLayout>

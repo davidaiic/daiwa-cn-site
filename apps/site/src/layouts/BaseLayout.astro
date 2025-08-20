@@ -1,0 +1,17 @@
+---
+const { title = '大和米蕈中国 | Daiwa Biobran', description = '官方站点', lang = 'zh' } = Astro.props;
+---
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/daiwa-cn-site/favicon.svg" />
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <slot name="header" />
+    <main class="flex-1">{Astro.slots.default}</main>
+    <slot name="footer" />
+  </body>
+</html>
