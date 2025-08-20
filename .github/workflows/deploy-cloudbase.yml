@@ -12,6 +12,11 @@ jobs:
         run: |
           npm ci || npm i
           npm run build
+      - name: List dist
+        run: |
+          ls -la apps/site/dist
+          echo "------"
+          find apps/site/dist -maxdepth 2 -type f | head -n 50
       - name: Deploy to Tencent CloudBase
         uses: TencentCloudBase/cloudbase-action@v2.0.1
         with:

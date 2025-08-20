@@ -2,15 +2,15 @@
   "version": "2.0",
   "envId": "{{env.envId}}",
   "framework": {
-    "name": "daiwa-pharmaceutical-china-site",
+    "name": "daiwa-cn",
     "plugins": {
       "web": {
         "use": "@cloudbase/framework-plugin-website",
         "inputs": {
-          "installCommand": "npm ci || npm i",
-          "buildCommand": "npm run build",
+          "installCommand": "cd apps/site && (npm ci || npm i)",
+          "buildCommand": "cd apps/site && npm run build",
           "outputPath": "apps/site/dist",
-          "cloudPath": "/daiwa-cn-site/", // 关键：部署到子目录
+          "cloudPath": "/daiwa-cn-site/",
           "ignore": [ ".git", ".github", "node_modules", "cloudbaserc.js" ]
         }
       },
