@@ -21,29 +21,17 @@
           "functions": [
             {
               "name": "comment-post",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs12.16",
               "installDependency": true,
               "timeout": 10,
-              "memorySize": 256,
-              "triggers": [
-                {
-                  "name": "http",
-                  "type": "http"
-                }
-              ]
+              "memorySize": 256
             },
             {
               "name": "comment-list",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs12.16",
               "installDependency": true,
               "timeout": 10,
-              "memorySize": 256,
-              "triggers": [
-                {
-                  "name": "http",
-                  "type": "http"
-                }
-              ]
+              "memorySize": 256
             }
           ],
           "servicePaths": {
