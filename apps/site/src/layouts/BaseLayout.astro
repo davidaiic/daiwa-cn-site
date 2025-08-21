@@ -1,5 +1,6 @@
 ---
-const { title = '�����ަ�й� | Daiwa Biobran', description = '�ٷ�վ��', lang = 'zh' } = Astro.props;
+import '../styles/globals.css';   // ← 新增：让 Tailwind 样式打包并注入
+const { title = '大和米蕈中国 | Daiwa Biobran', description = '官方站点', lang = 'zh' } = Astro.props;
 ---
 <html lang={lang}>
   <head>

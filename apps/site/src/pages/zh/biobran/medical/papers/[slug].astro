@@ -3,7 +3,7 @@ import BaseLayout from '../../../../../layouts/BaseLayout.astro';
 import Header from '../../../../../components/Header.astro';
 import Footer from '../../../../../components/Footer.astro';
 import { loadPapers } from '../../../../../lib/papers';
-import Comments from '../../../../../components/Comments.astro';  // ¡û ĞÂÔö
+import Comments from '../../../../../components/Comments.astro';  // â† æ–°å¢
 
 export async function getStaticPaths() {
   const list = loadPapers();
@@ -11,10 +11,10 @@ export async function getStaticPaths() {
 }
 const { paper } = Astro.props;
 const title = paper?.title || 'Paper';
-const desc = `${(paper?.authors||[]).join(', ')} ¡¤ ${paper?.journal||''} ¡¤ ${paper?.year||''}`;
+const desc = `${(paper?.authors||[]).join(', ')} Â· ${paper?.journal||''} Â· ${paper?.year||''}`;
 const canonical = new URL(import.meta.env.BASE_URL + `zh/biobran/medical/papers/${paper.slug}/`, Astro.site || 'http://localhost').toString();
 
-// ¼ÆËãÆÀÂÛÓÃµÄÎÄÕÂID£¨ÓÃ¡°×îÖÕÒ³ÃæÂ·¾¶¡±×÷Ö÷¼ü£©
+// è®¡ç®—è¯„è®ºç”¨çš„æ–‡ç« IDï¼ˆç”¨â€œæœ€ç»ˆé¡µé¢è·¯å¾„â€ä½œä¸»é”®ï¼‰
 const articleId = new URL(
   (import.meta.env.BASE_URL || '/') + `zh/biobran/medical/papers/${paper.slug}/`,
   Astro.site || 'http://localhost'
@@ -35,25 +35,25 @@ const jsonld = {
 
   <article class="mx-auto max-w-3xl px-4 py-10">
     <h1 class="text-3xl md:text-5xl font-semibold">{paper.title}</h1>
-    <p class="mt-3 text-neutral-600">{(paper.authors||[]).join(', ')} ¡¤ {paper.journal} ¡¤ {paper.year}</p>
+    <p class="mt-3 text-neutral-600">{(paper.authors||[]).join(', ')} Â· {paper.journal} Â· {paper.year}</p>
 
     {paper.abstract && <div class="mt-6 p-4 border rounded bg-white shadow-card">
-      <h2 class="text-xl font-semibold">ÕªÒª</h2>
+      <h2 class="text-xl font-semibold">æ‘˜è¦</h2>
       <p class="mt-2">{paper.abstract}</p>
     </div>}
 
     <div class="mt-6 grid gap-2 text-sm">
-      {paper.study_type && <div><b>ÑĞ¾¿ÀàĞÍ£º</b>{paper.study_type}</div>}
-      {paper.population && <div><b>ÊÜÊÔÈËÈº£º</b>{paper.population}</div>}
-      {(paper.outcomes||[]).length ? <div><b>Ö÷Òª½á¾Ö£º</b>{paper.outcomes.join('£»')}</div> : null}
-      {(paper.keywords||[]).length ? <div><b>¹Ø¼ü´Ê£º</b>{paper.keywords.join('£¬')}</div> : null}
-      {paper.doi || paper.url ? <div><b>Íâ²¿Á´½Ó£º</b>
+      {paper.study_type && <div><b>ç ”ç©¶ç±»å‹ï¼š</b>{paper.study_type}</div>}
+      {paper.population && <div><b>å—è¯•äººç¾¤ï¼š</b>{paper.population}</div>}
+      {(paper.outcomes||[]).length ? <div><b>ä¸»è¦ç»“å±€ï¼š</b>{paper.outcomes.join('ï¼›')}</div> : null}
+      {(paper.keywords||[]).length ? <div><b>å…³é”®è¯ï¼š</b>{paper.keywords.join('ï¼Œ')}</div> : null}
+      {paper.doi || paper.url ? <div><b>å¤–éƒ¨é“¾æ¥ï¼š</b>
         {paper.doi && <a class="text-brand underline" href={`https://doi.org/${paper.doi}`} target="_blank" rel="nofollow">DOI</a>}
-        {paper.url && <a class="text-brand underline ml-3" href={paper.url} target="_blank" rel="nofollow">À´Ô´</a>}
+        {paper.url && <a class="text-brand underline ml-3" href={paper.url} target="_blank" rel="nofollow">æ¥æº</a>}
       </div> : null}
     </div>
 
-    <!-- ÆÀÂÛÇø£¨ÀÁ¼ÓÔØ°´Å¥´¥·¢£© -->
+    <!-- è¯„è®ºåŒºï¼ˆæ‡’åŠ è½½æŒ‰é’®è§¦å‘ï¼‰ -->
     <Comments articleId={articleId} />
 
   <Fragment slot="footer"><Footer /></Fragment>

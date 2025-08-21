@@ -6,7 +6,7 @@ exports.main = async (event) => {
     try {
         const qs = event.queryString || {};
         const articleId = qs.articleId || '';
-        if (!articleId) return resp(400, { ok: false, msg: 'articleId ±ØÌî' });
+        if (!articleId) return resp(400, { ok: false, msg: 'articleId å¿…å¡«' });
 
         const res = await db.collection('comments')
             .where({ articleId, status: 'approved' })

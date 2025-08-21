@@ -2,14 +2,14 @@ import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 
-// Èç¹ûºóĞøÒª×ö¡°ÊõÓï×Ô¶¯ÄÚÁ´£¨¹¹½¨ÆÚ£©¡±£¬¿ÉÔÚÕâÀï½Ó remark ²å¼ş£»
-// ÏÈÁô³ö½Ó¿Ú£¬ÏÂÒ»°æÔÙÆôÓÃ£¨±ÜÃâÄã³õÅÜÊ±Òò FS Â·¾¶³ö´í£©¡£
+// å¦‚æœåç»­è¦åšâ€œæœ¯è¯­è‡ªåŠ¨å†…é“¾ï¼ˆæ„å»ºæœŸï¼‰â€ï¼Œå¯åœ¨è¿™é‡Œæ¥ remark æ’ä»¶ï¼›
+// å…ˆç•™å‡ºæ¥å£ï¼Œä¸‹ä¸€ç‰ˆå†å¯ç”¨ï¼ˆé¿å…ä½ åˆè·‘æ—¶å›  FS è·¯å¾„å‡ºé”™ï¼‰ã€‚
 // import remarkAutoLinkWiki from './src/plugins/remarkAutoLinkWiki.js';
 //
 
 export default defineConfig({
-    site: 'https://shiyaoprice-4gl8n61ibf516ead-1334775748.tcloudbaseapp.com/daiwa-cn-site', // Éú²ú¸Ä³ÉÄãµÄÓòÃû+Â·¾¶
-    base: '/daiwa-cn-site/',                   // ¹Ø¼ü£º¶ş¼¶Ä¿Â¼
+    site: 'https://shiyaoprice-4gl8n61ibf516ead-1334775748.tcloudbaseapp.com/daiwa-cn-site', // ç”Ÿäº§æ”¹æˆä½ çš„åŸŸå+è·¯å¾„
+    base: '/daiwa-cn-site/',                   // å…³é”®ï¼šäºŒçº§ç›®å½•
     integrations: [tailwind({ applyBaseStyles: false }), sitemap()],
     // markdown: { remarkPlugins: [[remarkAutoLinkWiki, { wikiDir: 'apps/site/src/content/wiki' }]] },
     output: 'static'

@@ -1,7 +1,7 @@
 ---
 title: "Biobran"
-aliases: ["MGN-3","Ã×¿·°¢À­²®Ä¾¾ÛÌÇ¸´ºÏÎï"]
+aliases: ["MGN-3","ç±³ç³ é˜¿æ‹‰ä¼¯æœ¨èšç³–å¤åˆç‰©"]
 lang: "zh"
 ---
 
-Biobran£ºÊõÓï½âÊÍÊ¾Àý£¨ºóÐø remark ²å¼þ»áÔÚÎÄÕÂÖÐ°Ñ¸Ã´Ê×Ô¶¯¼ÓÕ¾ÄÚÁ´½Ó£©¡£
+Biobranï¼šæœ¯è¯­è§£é‡Šç¤ºä¾‹ï¼ˆåŽç»­ remark æ’ä»¶ä¼šåœ¨æ–‡ç« ä¸­æŠŠè¯¥è¯è‡ªåŠ¨åŠ ç«™å†…é“¾æŽ¥ï¼‰ã€‚

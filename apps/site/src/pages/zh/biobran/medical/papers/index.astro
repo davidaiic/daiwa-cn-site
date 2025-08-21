@@ -3,17 +3,17 @@ import BaseLayout from '../../../../../layouts/BaseLayout.astro';
 import Header from '../../../../../components/Header.astro';
 import Footer from '../../../../../components/Footer.astro';
 import { withBase } from '../../../../../lib/url';
-const pageTitle = 'ÁÙ´²ÎÄÏ×¿â';
+const pageTitle = 'ä¸´åºŠæ–‡çŒ®åº“';
 ---
-<BaseLayout title={pageTitle} description="Biobran ÁÙ´²ÎÄÏ×¿â" lang="zh">
+<BaseLayout title={pageTitle} description="Biobran ä¸´åºŠæ–‡çŒ®åº“" lang="zh">
   <Fragment slot="header"><Header /></Fragment>
 
   <section class="mx-auto max-w-7xl px-4 py-10">
     <h1 class="text-3xl md:text-5xl font-semibold">{pageTitle}</h1>
     <div class="mt-6 grid gap-3 md:grid-cols-3">
-      <input id="q" placeholder="¹Ø¼ü´Ê / ±êÌâ / ×÷Õß" class="border p-2 rounded" />
-      <input id="year" type="number" placeholder="Äê·İ" class="border p-2 rounded" />
-      <button id="search" class="px-4 py-2 rounded bg-brand text-white">ËÑË÷</button>
+      <input id="q" placeholder="å…³é”®è¯ / æ ‡é¢˜ / ä½œè€…" class="border p-2 rounded" />
+      <input id="year" type="number" placeholder="å¹´ä»½" class="border p-2 rounded" />
+      <button id="search" class="px-4 py-2 rounded bg-brand text-white">æœç´¢</button>
     </div>
     <div id="list" class="mt-8 grid gap-4"></div>
   </section>
@@ -32,8 +32,8 @@ const pageTitle = 'ÁÙ´²ÎÄÏ×¿â';
       list.innerHTML = items.map(p => `
         <a class="block p-4 border rounded hover:shadow-card" href="${import.meta.env.BASE_URL}zh/biobran/medical/papers/${p.slug}/">
           <div class="text-lg font-semibold">${p.title}</div>
-          <div class="text-sm text-neutral-600 mt-1">${(p.authors||[]).join(', ')} ¡¤ ${p.journal||''} ¡¤ ${p.year||''}</div>
-          <div class="text-sm mt-2">${(p.keywords||[]).slice(0,5).join(' ¡¤ ')}</div>
+          <div class="text-sm text-neutral-600 mt-1">${(p.authors||[]).join(', ')} Â· ${p.journal||''} Â· ${p.year||''}</div>
+          <div class="text-sm mt-2">${(p.keywords||[]).slice(0,5).join(' Â· ')}</div>
         </a>
       `).join('');
     }

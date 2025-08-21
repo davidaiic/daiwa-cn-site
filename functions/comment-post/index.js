@@ -6,16 +6,16 @@ exports.main = async (event) => {
     try {
         const body = typeof event.body === 'string' ? JSON.parse(event.body) : (event.body || {});
         const { articleId, author = '', content = '' } = body;
-        if (!articleId || !content.trim()) return resp(400, { ok: false, msg: '²ÎÊý²»ÍêÕû' });
+        if (!articleId || !content.trim()) return resp(400, { ok: false, msg: 'å‚æ•°ä¸å®Œæ•´' });
 
-        // ¼«¼ò·ÀË¢£º³¤¶ÈÏÞÖÆ + ÆµÂÊÏÞÖÆ£¨¿ÉÀ©Õ¹£©
-        if (content.length > 2000) return resp(400, { ok: false, msg: 'ÄÚÈÝ¹ý³¤' });
+        // æžç®€é˜²åˆ·ï¼šé•¿åº¦é™åˆ¶ + é¢‘çŽ‡é™åˆ¶ï¼ˆå¯æ‰©å±•ï¼‰
+        if (content.length > 2000) return resp(400, { ok: false, msg: 'å†…å®¹è¿‡é•¿' });
 
         const doc = {
             articleId,
             author: String(author).slice(0, 50),
             content: String(content).slice(0, 2000),
-            status: 'pending', // Ä¬ÈÏ´ýÉóºË
+            status: 'pending', // é»˜è®¤å¾…å®¡æ ¸
             createdAt: Date.now(),
             ip: event.sourceIp || ''
         };

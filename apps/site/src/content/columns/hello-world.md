@@ -1,9 +1,9 @@
 ---
-title: "×¨À¸Ê¾Àı£ºBiobranÈëÃÅ"
-description: "ÕâÊÇÒ»ÆªÊ¾Àı×¨À¸ÎÄÕÂ¡£"
+title: "ä¸“æ ç¤ºä¾‹ï¼šBiobranå…¥é—¨"
+description: "è¿™æ˜¯ä¸€ç¯‡ç¤ºä¾‹ä¸“æ æ–‡ç« ã€‚"
 date: "2025-08-19"
 tags: ["biobran","immune"]
 lang: "zh"
 ---
 
-ÕâÀïÊÇÕıÎÄÄÚÈİ£¨Ö§³Ö Markdown£©¡£
+è¿™é‡Œæ˜¯æ­£æ–‡å†…å®¹ï¼ˆæ”¯æŒ Markdownï¼‰ã€‚

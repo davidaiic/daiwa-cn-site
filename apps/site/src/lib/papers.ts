@@ -10,7 +10,7 @@ export type Paper = {
 };
 
 export function loadPapers(): Paper[] {
-    const file = path.join(process.cwd(), 'data', 'papers.yaml'); // ¡û ÐÞÕýÔÚÕâÀï
+    const file = path.join(process.cwd(), 'data', 'papers.yaml'); // â† ä¿®æ­£åœ¨è¿™é‡Œ
     const text = fs.readFileSync(file, 'utf8');
     const raw = yaml.parse(text) || [];
     return raw.map((p: any) => ({

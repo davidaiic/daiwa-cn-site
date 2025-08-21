@@ -5,9 +5,9 @@ const listApi = `${base}api/comment-list?articleId=${encodeURIComponent(articleI
 const postApi = `${base}api/comment-post`;
 ---
 <section class="mt-10">
-  <h2 class="text-xl font-semibold">ÆÀÂÛ</h2>
+  <h2 class="text-xl font-semibold">è¯„è®º</h2>
   <div id="comments"></div>
-  <button id="loadComments" class="mt-3 px-4 py-2 rounded bg-brand text-white">¼ÓÔØÆÀÂÛ</button>
+  <button id="loadComments" class="mt-3 px-4 py-2 rounded bg-brand text-white">åŠ è½½è¯„è®º</button>
 </section>
 
 <script is:inline>
@@ -29,9 +29,9 @@ const postApi = `${base}api/comment-post`;
         </div>`).join('')}
       </div>
       <form id="cform" class="mt-4 space-y-2">
-        <textarea name="content" required placeholder="Ğ´ÏÂÄãµÄ¿´·¨£¨ÉóºËºó¿É¼û£©" class="w-full border p-2 rounded"></textarea>
-        <input name="author" placeholder="³Æºô£¨¿ÉÑ¡£©" class="border p-2 rounded" />
-        <button class="px-4 py-2 rounded bg-brand text-white">Ìá½»</button>
+        <textarea name="content" required placeholder="å†™ä¸‹ä½ çš„çœ‹æ³•ï¼ˆå®¡æ ¸åå¯è§ï¼‰" class="w-full border p-2 rounded"></textarea>
+        <input name="author" placeholder="ç§°å‘¼ï¼ˆå¯é€‰ï¼‰" class="border p-2 rounded" />
+        <button class="px-4 py-2 rounded bg-brand text-white">æäº¤</button>
       </form>`;
 
     document.getElementById('cform').addEventListener('submit', async (e) => {
@@ -40,7 +40,7 @@ const postApi = `${base}api/comment-post`;
       const payload = { articleId: `${articleId}`, author: fd.get('author')||'', content: fd.get('content')||'' };
       const r = await fetch(postApi, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       const jr = await r.json();
-      alert(jr.ok ? 'ÒÑÌá½»£¬´ıÉóºË' : ('Ìá½»Ê§°Ü£º' + (jr.msg||'')));
+      alert(jr.ok ? 'å·²æäº¤ï¼Œå¾…å®¡æ ¸' : ('æäº¤å¤±è´¥ï¼š' + (jr.msg||'')));
     });
   });
 </script>
