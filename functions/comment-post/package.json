@@ -1,5 +1,6 @@
 {
-  "name": "comment-post",
+  "name": "comment-list",
   "version": "1.0.0",
+  "main": "index.js",
   "dependencies": { "tcb-admin-node": "^1.25.1" }
 }

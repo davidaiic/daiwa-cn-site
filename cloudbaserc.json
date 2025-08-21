@@ -24,14 +24,26 @@
               "runtime": "Nodejs18",
               "installDependency": true,
               "timeout": 10,
-              "memorySize": 256
+              "memorySize": 256,
+              "triggers": [
+                {
+                  "name": "http",
+                  "type": "http"
+                }
+              ]
             },
             {
               "name": "comment-list",
               "runtime": "Nodejs18",
               "installDependency": true,
               "timeout": 10,
-              "memorySize": 256
+              "memorySize": 256,
+              "triggers": [
+                {
+                  "name": "http",
+                  "type": "http"
+                }
+              ]
             }
           ],
           "servicePaths": {
