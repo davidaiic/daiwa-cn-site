@@ -1,6 +1,8 @@
 {
-  "name": "comment-list",
+  "name": "comment-post",
   "version": "1.0.0",
   "main": "index.js",
-  "dependencies": { "tcb-admin-node": "^1.25.1" }
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.11.0"
+  }
 }

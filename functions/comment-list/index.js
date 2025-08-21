@@ -1,10 +1,10 @@
-const tcb = require('tcb-admin-node');
-tcb.init({ env: process.env.TCB_ENV || process.env.SCF_NAMESPACE });
-const db = tcb.database();
+const cloudbase = require('@cloudbase/node-sdk');
+const app = cloudbase.init({ env: process.env.TCB_ENV || process.env.SCF_NAMESPACE });
+const db = app.database();
 
-exports.main = async (event) => {
+exports.main = async (event = {}) => {
     try {
-        const qs = event.queryString || {};
+        const qs = event.queryString || event.queryStringParameters || {};
         const articleId = qs.articleId || '';
         if (!articleId) return resp(400, { ok: false, msg: 'articleId 必填' });
 
@@ -19,5 +19,14 @@ exports.main = async (event) => {
         return resp(500, { ok: false, msg: e.message });
     }
 };
-function resp(code, obj) { return { statusCode: code, headers: headers(), body: JSON.stringify(obj) }; }
-function headers() { return { 'Content-Type': 'application/json; charset=utf-8', 'Access-Control-Allow-Origin': '*' }; }
+
+function resp(code, obj) {
+    return {
+        statusCode: code,
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify(obj)
+    };
+}
