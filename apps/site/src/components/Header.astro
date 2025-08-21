@@ -10,12 +10,36 @@ const nav = [
   { href: '/zh/news/', label: '新闻' },
   { href: '/zh/about/', label: '关于' }
 ];
+const base = import.meta.env.BASE_URL || '/';
 ---
 <header class="sticky top-0 z-50 bg-white/80 backdrop-blur border-b">
   <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
-    <a href={withBase('/zh/')} class="font-semibold text-[18px] text-brand">Daiwa CN</a>
+    <a href={withBase('/zh/')} class="font-semibold text-[20px] text-brand">Daiwa CN</a>
+
+    <!-- 桌面导航 -->
     <nav class="hidden md:flex gap-6">
       {nav.map(i => <a href={withBase(i.href)} class="hover:text-brand">{i.label}</a>)}
     </nav>
+
+    <!-- 移动端按钮 -->
+    <button id="menuBtn" class="md:hidden p-2 border rounded" aria-label="打开菜单" aria-expanded="false">
+      ☰
+    </button>
   </div>
+
+  <!-- 移动端抽屉 -->
+  <nav id="mobileMenu" class="md:hidden hidden border-t bg-white">
+    <div class="px-4 py-3 grid gap-3">
+      {nav.map(i => <a href={withBase(i.href)} class="py-2">{i.label}</a>)}
+    </div>
+  </nav>
 </header>
+
+<script is:inline>
+  const btn = document.getElementById('menuBtn');
+  const menu = document.getElementById('mobileMenu');
+  btn?.addEventListener('click', () => {
+    const open = menu.classList.toggle('hidden');
+    btn.setAttribute('aria-expanded', String(!open));
+  });
+</script>

@@ -1,0 +1,14 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'; // 注意相对路径
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+const title = '占位：新闻'; // 术语/专栏/关于/专家与会议 各自改标题
+---
+<BaseLayout title={title} description={title} lang="zh">
+  <Fragment slot="header"><Header /></Fragment>
+  <section class="mx-auto max-w-7xl px-4 py-12">
+    <h1 class="text-3xl md:text-5xl font-semibold">{title}</h1>
+    <p class="mt-4 text-neutral-600">这里是占位页，稍后填充真实内容与列表。</p>
+  </section>
+  <Fragment slot="footer"><Footer /></Fragment>
+</BaseLayout>
