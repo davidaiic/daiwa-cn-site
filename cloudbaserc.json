@@ -13,30 +13,6 @@
           "cloudPath": "/daiwa-cn-site/",
           "ignore": [ ".git", ".github", "node_modules", "cloudbaserc.js" ]
         }
-      },
-      "fn": {
-        "use": "@cloudbase/framework-plugin-function",
-        "inputs": {
-          "functionRootPath": "functions",
-          "functions": [
-            {
-              "name": "comment-post",
-              "installDependency": true,
-              "timeout": 10,
-              "memorySize": 256
-            },
-            {
-              "name": "comment-list",
-              "installDependency": true,
-              "timeout": 10,
-              "memorySize": 256
-            }
-          ],
-          "servicePaths": {
-            "comment-post": "/daiwa-cn-site/api/comment-post",
-            "comment-list": "/daiwa-cn-site/api/comment-list"
-          }
-        }
       }
     }
   }

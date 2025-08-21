@@ -8,7 +8,7 @@ import sitemap from '@astrojs/sitemap';
 //
 
 export default defineConfig({
-    site: 'http://shiyaoprice-4gl8n61ibf516ead-1334775748.tcloudbaseapp.com/daiwa-cn-site', // 生产改成你的域名+路径
+    site: 'https://shiyaoprice-4gl8n61ibf516ead-1334775748.tcloudbaseapp.com/daiwa-cn-site', // 生产改成你的域名+路径
     base: '/daiwa-cn-site/',                   // 关键：二级目录
     integrations: [tailwind({ applyBaseStyles: false }), sitemap()],
     // markdown: { remarkPlugins: [[remarkAutoLinkWiki, { wikiDir: 'apps/site/src/content/wiki' }]] },
