@@ -1,5 +1,5 @@
 ---
-const { articleId } = Astro.props; // e.g. /daiwa-cn-site/zh/biobran/medical/papers/pmid-12345678/
+const { articleId } = Astro.props;
 ---
 <section id="comments-root" data-article-id={articleId} class="mt-10">
   <h2 class="text-xl font-semibold">评论</h2>
@@ -12,9 +12,13 @@ const { articleId } = Astro.props; // e.g. /daiwa-cn-site/zh/biobran/medical/pap
     const root = document.getElementById('comments-root');
     const mount = document.getElementById('comments');
     const loadBtn = document.getElementById('loadComments');
-    const articleId = root?.dataset?.articleId || '';
 
-    // 1) 优先从 <meta name="tcb-api-base"> 读取函数域名；否则回退到同域 + /daiwa-cn-site
+    // 关键兜底：优先取组件传入的 data-article-id，否则退回浏览器当前路径
+    const articleId = (root?.dataset?.articleId && root.dataset.articleId.trim())
+      ? root.dataset.articleId
+      : (typeof location !== 'undefined' ? location.pathname : '');
+
+    // 优先读取函数域名（.env 里 PUBLIC_TCB_API_BASE），否则回退同域
     const meta = document.querySelector('meta[name="tcb-api-base"]');
     const apiBase =
       (meta && meta.content ? meta.content.replace(/\/+$/, '') : location.origin) +
@@ -23,9 +27,7 @@ const { articleId } = Astro.props; // e.g. /daiwa-cn-site/zh/biobran/medical/pap
     const listApi = `${apiBase}/api/comment-list`;
     const postApi = `${apiBase}/api/comment-post`;
 
-    function esc(s) {
-      return String(s).replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
-    }
+    function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
 
     async function load() {
       loadBtn.disabled = true;
@@ -38,9 +40,8 @@ const { articleId } = Astro.props; // e.g. /daiwa-cn-site/zh/biobran/medical/pap
             ${items.map(it => `
               <div class="p-3 border rounded">
                 <div class="text-sm text-neutral-600">${new Date(it.createdAt).toLocaleString()}</div>
-                <div class="mt-1">${esc(it.content || '')}</div>
-              </div>
-            `).join('')}
+                <div class="mt-1">${esc(it.content||'')}</div>
+              </div>`).join('')}
           </div>
           <form id="cform" class="mt-4 space-y-2">
             <textarea name="content" required placeholder="写下你的看法（审核后可见）" class="w-full border p-2 rounded"></textarea>
@@ -57,8 +58,7 @@ const { articleId } = Astro.props; // e.g. /daiwa-cn-site/zh/biobran/medical/pap
             content: fd.get('content') || ''
           };
           const r = await fetch(postApi, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify(payload)
           });
           const jr = await r.json();

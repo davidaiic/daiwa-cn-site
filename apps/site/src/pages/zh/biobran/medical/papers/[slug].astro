@@ -54,7 +54,8 @@ const jsonld = {
     </div>
 
     <!-- 评论区（懒加载按钮触发） -->
-    <Comments articleId={articleId} />
+    <!-- 关键：把当前页面路径传给评论组件 -->
+    <Comments articleId={Astro.url.pathname} />
 
   <Fragment slot="footer"><Footer /></Fragment>
 </BaseLayout>
