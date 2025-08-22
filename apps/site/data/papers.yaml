@@ -1,27 +1,40 @@
-- id: doi-10-1000-xyz
-  title: "Biobran (MGN-3) on Immune Modulation in Adults..."
-  authors: ["Sato K", "Tanaka M", "Wang J"]
-  journal: "Journal of Nutraceutical Research"
-  year: 2021
-  doi: "10.1000/xyz"
-  url: "https://doi.org/10.1000/xyz"
-  study_type: "Randomized Controlled Trial"
-  population: "Adults, n=120"
-  outcomes:
-    - "Primary: NK cell activity"
-    - "Secondary: QOL score"
-  keywords: ["Biobran", "MGN-3", "immune"]
-  abstract: "（摘要示例）"
-
 - id: pmid-12345678
-  title: "A Review of Rice Bran Arabinoxylan Compound..."
-  authors: ["Liu H", "Chen Y"]
-  journal: "Nutrients"
-  year: 2019
-  doi: ""
-  url: "https://pubmed.ncbi.nlm.nih.gov/12345678/"
-  study_type: "Review"
-  population: ""
-  outcomes: []
-  keywords: ["review", "arabinoxylan"]
-  abstract: ""
+  title: Biobran 对免疫指标的影响：一项随机对照试验
+  authors: [Zhang H, Li Q, Wang J]
+  journal: 中国临床营养杂志
+  year: 2022
+  doi: 10.1000/abc123
+  url: https://example.org/paper-1
+  study_type: RCT
+  population: 健康成人
+  outcomes: [NK细胞活性, IL-6, CRP]
+  keywords: [Biobran, 免疫, 多糖]
+  abstract: >
+    本研究评估了Biobran对健康成人免疫指标的影响。与对照组相比，Biobran组在第8周时NK细胞活性显著上升……
+
+- id: doi-10-1000-xyz
+  title: 肿瘤患者辅助营养中的米蕈多糖应用综述
+  authors: [Liu Y, Chen P]
+  journal: 肿瘤学进展
+  year: 2021
+  doi: 10.1000/xyz
+  url: https://example.org/paper-2
+  study_type: Review
+  population: 肿瘤患者
+  outcomes: [生活质量, 化疗不良反应]
+  keywords: [Biobran, 营养支持, 化疗]
+  abstract: >
+    综述了米蕈多糖在肿瘤支持治疗中的研究进展，指出其可能改善生活质量并降低化疗相关不良反应的风险。
+
+- id: pilot-immune-2023
+  title: 米蕈多糖对易感人群上呼吸道感染的预防性研究
+  authors: [Sun K, Zhao L]
+  journal: 预防医学导报
+  year: 2023
+  url: https://example.org/paper-3
+  study_type: Pilot
+  population: 易感人群
+  outcomes: [感染发生率, 持续时间]
+  keywords: [Biobran, 上呼吸道感染, 预防]
+  abstract: >
+    先导性研究显示，连续补充米蕈多糖可能降低上呼吸道感染发生率，并缩短病程。
