@@ -1,0 +1,14 @@
+# GEO + SEO 规范 v1
+- 目标地区：CN；默认中文简体 zh-CN
+- URL：小写、连字符、结尾斜线
+- Canonical：PUBLIC_CANONICAL_HOST + 路径
+- Robots：允许主流爬虫；禁止内部/筛选页
+- Sitemaps：/sitemap-index.xml + 子sitemap
+- Feeds：/feed.json（JSON Feed）
+- 结构化数据：主页 Organization/Product；文档 Article/NewsArticle；论文 ScholarlyArticle；问答 QAPage；专家 Person；会议 Event；BreadcrumbList
+- 页面质量：首屏 SSR（静态）；评论/多媒体懒加载；图片 srcset + lazy
+- 内链：构建期自动内链（来源 wiki 词典；每词/每页<=1）
+- 外链：媒体/专家/医院；规范锚文本
+- 主动推送：Baidu/IndexNow；触发于发布/更新
+- AI 抓取：/.well-known/ai.json 提供 feed/sitemap；允许 Bytespider 等
+- 合规：医疗免责声明；广告标识；隐私政策
