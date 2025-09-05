@@ -64,9 +64,10 @@
       "website": {
         "use": "@cloudbase/framework-plugin-website",
         "inputs": {
-          "srcPath": "apps/site/dist",
-          "cloudPath": "/daiwa-cn-site",
-          "ignore": []
+          "installCommand": "npm --prefix apps/site ci || npm --prefix apps/site i",
+          "buildCommand": "npm --prefix apps/site run build",
+          "outputPath": "apps/site/dist",
+          "cloudPath": "/daiwa-cn-site"
         }
       }
     }
