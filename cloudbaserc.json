@@ -1,92 +1,58 @@
 {
   "version": "2.0",
-  "envId": "${{ secrets.ENVID }}",
-  "functionRoot": "cloudfunctions",
-  "functions": [
-    {
-      "name": "comment-list",
-      "runtime": "Nodejs18.15",
-      "handler": "index.main",
-      "timeout": 10,
-      "memorySize": 256,
-      "installDependency": true,
-      "triggers": [
-        {
-          "name": "http",
-          "type": "http",
-          "config": {
-            "path": "/daiwa-cn-site/api/comment-list",
-            "method": "GET"
-          }
-        }
-      ]
-    },
-    {
-      "name": "comment-post",
-      "runtime": "Nodejs18.15",
-      "handler": "index.main",
-      "timeout": 10,
-      "memorySize": 256,
-      "installDependency": true,
-      "triggers": [
-        {
-          "name": "http",
-          "type": "http",
-          "config": {
-            "path": "/daiwa-cn-site/api/comment-post",
-            "method": "POST"
-          }
-        }
-      ]
-    },
-    {
-      "name": "comment-hot",
-      "runtime": "Nodejs18.15",
-      "handler": "index.main",
-      "timeout": 10,
-      "memorySize": 256,
-      "installDependency": true,
-      "triggers": [
-        {
-          "name": "http",
-          "type": "http",
-          "config": {
-            "path": "/daiwa-cn-site/api/comment-hot",
-            "method": "GET"
-          }
-        }
-      ]
-    }
-  ],
+  "envId": "{{env.envId}}",
   "framework": {
     "name": "daiwa-cn-site",
     "plugins": {
       "website": {
         "use": "@cloudbase/framework-plugin-website",
         "inputs": {
-          "installCommand": "npm --prefix apps/site ci || npm --prefix apps/site i",
+          "installCommand": "npm ci || npm i",
           "buildCommand": "npm --prefix apps/site run build",
           "outputPath": "apps/site/dist",
           "cloudPath": "/daiwa-cn-site"
         }
+      },
+      "functions": {
+        "use": "@cloudbase/framework-plugin-function",
+        "inputs": {
+          "functionRootPath": "cloudfunctions",
+          "functions": [
+            {
+              "name": "comment-list",
+              "runtime": "Nodejs18.15",
+              "installDependency": true
+            },
+            {
+              "name": "comment-post",
+              "runtime": "Nodejs18.15",
+              "installDependency": true
+            },
+            {
+              "name": "comment-hot",
+              "runtime": "Nodejs18.15",
+              "installDependency": true
+            }
+          ]
+        }
       }
     }
   },
-  "servicePaths": [
-    {
-      "path": "/daiwa-cn-site/api/comment-list",
-      "type": "scf",
-      "name": "comment-list"
-    },
-    {
-      "path": "/daiwa-cn-site/api/comment-post",
-      "type": "scf",
-      "name": "comment-post"
-    },
-    {
-      "path": "/daiwa-cn-site/api/comment-hot",
-      "type": "scf",
-      "name": "comment-hot"
+  "servicePaths": {
+    "basePath": "/daiwa-cn-site",
+    "paths": {
+      "api/comment-list": {
+        "function": "comment-list",
+        "method": "GET"
+      },
+      "api/comment-post": {
+        "function": "comment-post",
+        "method": "POST"
+      },
+      "api/comment-hot": {
+        "function": "comment-hot",
+        "method": "GET"
+      }
     }
-  ]
+  }
 }
