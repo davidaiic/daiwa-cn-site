@@ -1,9 +1,8 @@
 ---
-import Base from "~/layouts/Base.astro"; 
+import Base from "@/layouts/Base.astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
-  // 生成所有词条的静态路由
   const entries = await getCollection("wiki");
   return entries.map((e) => ({ params: { slug: e.slug }, props: { entry: e } }));
 }
