@@ -32,11 +32,35 @@
               "installDependency": true,
               "timeout": 10,
               "memorySize": 256
+            },
+            {
+              "name": "comment-hot",
+              "runtime": "Nodejs12.16",
+              "installDependency": true,
+              "timeout": 10,
+              "memorySize": 256
+            },
+            {
+              "name": "push-baidu",
+              "runtime": "Nodejs12.16",
+              "installDependency": false,
+              "timeout": 10,
+              "memorySize": 256
+            },
+            {
+              "name": "push-indexnow",
+              "runtime": "Nodejs12.16",
+              "installDependency": false,
+              "timeout": 10,
+              "memorySize": 256
             }
           ],
           "servicePaths": {
             "comment-post": "/daiwa-cn-site/api/comment-post",
-            "comment-list": "/daiwa-cn-site/api/comment-list"
+            "comment-list": "/daiwa-cn-site/api/comment-list",
+            "comment-hot": "/daiwa-cn-site/api/comment-hot",
+            "push-baidu": "/daiwa-cn-site/api/push-baidu",
+            "push-indexnow": "/daiwa-cn-site/api/push-indexnow"
           }
         }
       }
