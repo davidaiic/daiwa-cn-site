@@ -1,0 +1,21 @@
+---
+import Base from "../../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  // 生成所有词条的静态路由
+  const entries = await getCollection("wiki");
+  return entries.map((e) => ({ params: { slug: e.slug }, props: { entry: e } }));
+}
+
+const { entry } = Astro.props;
+const { Content, data } = await entry.render();
+const title = data.title || entry.slug;
+---
+
+<Base title={title}>
+  <article class="prose mx-auto">
+    <h1>{title}</h1>
+    <Content />
+  </article>
+</Base>

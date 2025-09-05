@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "2.0",
   "envId": "{{env.envId}}",
   "framework": {
@@ -21,35 +21,35 @@
           "functions": [
             {
               "name": "comment-post",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs18.15",
               "installDependency": true,
               "timeout": 10,
               "memorySize": 256
             },
             {
               "name": "comment-list",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs18.15",
               "installDependency": true,
               "timeout": 10,
               "memorySize": 256
             },
             {
               "name": "comment-hot",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs18.15",
               "installDependency": true,
               "timeout": 10,
               "memorySize": 256
             },
             {
               "name": "push-baidu",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs18.15",
               "installDependency": false,
               "timeout": 10,
               "memorySize": 256
             },
             {
               "name": "push-indexnow",
-              "runtime": "Nodejs18",
+              "runtime": "Nodejs18.15",
               "installDependency": false,
               "timeout": 10,
               "memorySize": 256
