@@ -1,15 +1,18 @@
 ---
-import Base from "@/layouts/Base.astro";
-import { getCollection } from "astro:content";
+import Base from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
-  const entries = await getCollection("wiki");
+  const entries = await getCollection('wiki');
   return entries.map((e) => ({ params: { slug: e.slug }, props: { entry: e } }));
 }
 
 const { entry } = Astro.props;
-const { Content, data } = await entry.render();
-const title = data.title || entry.slug;
+
+// 仅渲染 Content；frontmatter 请从 entry.data 读取（它永远存在，可能为空对象）
+const { Content } = await entry.render();
+
+const title = entry.data?.title ?? entry.slug;
 ---
 
 <Base title={title}>

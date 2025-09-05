@@ -21,10 +21,18 @@ export default defineConfig({
             : 'https://shiyaoprice-4gl8n61ibf516ead-1334775748.tcloudbaseapp.com/daiwa-cn-site'),
     base: '/daiwa-cn-site/',
 
-    // ✅ 用“绝对物理路径”声明别名（Vite 推荐用法）
+  // 让 @ 和 ~ 都指向 ./src
     alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
-        '~': fileURLToPath(new URL('./src', import.meta.url)),
+        '~': fileURLToPath(new URL('./src', import.meta.url))
+    },
+
+    vite: {
+        resolve: {
+            alias: {
+                '@': fileURLToPath(new URL('./src', import.meta.url)), // <— 关键
+            },
+        },
     },
 
     integrations: [tailwind({ applyBaseStyles: false }), sitemap(), mdx()],

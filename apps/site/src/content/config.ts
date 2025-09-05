@@ -14,10 +14,11 @@ const columns = defineCollection({
 const wiki = defineCollection({
     type: 'content',
     schema: z.object({
-        title: z.string(),
-        aliases: z.array(z.string()).optional(),
-        lang: z.enum(['zh', 'en', 'ja']).default('zh')
-    })
+        title: z.string().optional(),
+        description: z.string().optional(),
+        keywords: z.array(z.string()).optional(),
+        updated: z.string().optional(),
+    }),
 });
 
 export const collections = { columns, wiki };
