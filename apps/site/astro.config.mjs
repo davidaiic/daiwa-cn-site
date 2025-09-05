@@ -24,8 +24,12 @@ export default defineConfig({
     site: 'https://shiyaoprice-4gl8n61ibf516ead-1334775748.tcloudbaseapp.com/daiwa-cn-site', // 生产改成你的域名+路径
     base: '/daiwa-cn-site/',                   // 关键：二级目录
 
+    alias: {
+        '~': './src'    // <—— 新增：给 src 目录起个别名
+    },
+
     //integrations: [tailwind({ applyBaseStyles: false }), sitemap()],
-    integrations: [tailwind(), mdx()],
+    integrations: [tailwind({ applyBaseStyles: false }), sitemap() , mdx()],
     // markdown: { remarkPlugins: [[remarkAutoLinkWiki, { wikiDir: 'apps/site/src/content/wiki' }]] },
 
     //output: 'static',
