@@ -1,0 +1,32 @@
+---
+/**
+ * 把插槽里的纯文本里出现的 wiki 词条替换为站内 <a> 链接。
+ * 词条来源：public/search/index.json（由 prebuild 脚本生成）
+ */
+import searchIndex from '../../public/search/index.json';
+
+// 仅保留 /zh/wiki/ 下的词条
+const docs = (searchIndex?.docs ?? [])
+  .filter((d) => typeof d?.url === 'string' && d.url.startsWith('/zh/wiki/'))
+  .map((d) => ({
+    title: (d.title || '').trim(),
+    url: d.url.endsWith('/') ? d.url : `${d.url}/`,
+  }))
+  .filter((d) => d.title);
+
+// 正则转义
+function esc(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// 渲染默认插槽为 HTML 字符串（Astro v3/v4 正确写法）
+let html = (await Astro.slots.render('default')) ?? '';
+
+// 逐个词条替换为链接：使用 Unicode 边界，尽量避免把词条的一部分或标签里的内容误命中
+for (const d of docs) {
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])(${esc(d.title)})(?![\\p{L}\\p{N}])`, 'gu');
+  html = html.replace(re, `<a class="wiki-link" href="${d.url}">$1</a>`);
+}
+---
+
+<div set:html={html} />

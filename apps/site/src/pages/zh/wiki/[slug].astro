@@ -1,23 +1,40 @@
 ---
 import Base from '@/layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+import WikiInlineLinks from '../../../components/WikiInlineLinks.astro';
+
+import { getEntryBySlug } from 'astro:content';
+const wikiIntro = await getEntryBySlug('snippets', 'wiki-intro');
+const { Content: WikiIntro } = await wikiIntro.render();
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+const title = entry.data?.title ?? entry.slug;
+
 
 export async function getStaticPaths() {
   const entries = await getCollection('wiki');
   return entries.map((e) => ({ params: { slug: e.slug }, props: { entry: e } }));
 }
 
-const { entry } = Astro.props;
+//const { entry } = Astro.props;
 
 // 仅渲染 Content；frontmatter 请从 entry.data 读取（它永远存在，可能为空对象）
-const { Content } = await entry.render();
+//const { Content } = await entry.render();
 
-const title = entry.data?.title ?? entry.slug;
+//const title = entry.data?.title ?? entry.slug;
 ---
+
 
 <Base title={title}>
   <article class="prose mx-auto">
-    <h1>{title}</h1>
-    <Content />
+    <WikiInlineLinks>
+        <h1>{title}</h1>
+        <WikiIntro />
+        <Content />
+    <!-- 词条正文（通常是 <Content /> 或你现有的 HTML） -->
+    <!-- 例如： -->
+    { /* <Content /> 或 <section set:html={html}/> 等 */ }
+  </WikiInlineLinks>
+
   </article>
 </Base>

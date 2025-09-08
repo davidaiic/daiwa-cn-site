@@ -9,3 +9,7 @@
 body {
     @apply text-neutral-800 bg-white;
 }
+
+.wiki-link {
+    text-decoration: underline dotted;
+}

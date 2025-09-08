@@ -5,10 +5,19 @@ import Footer from '../../../../../components/Footer.astro';
 import { loadPapers } from '../../../../../lib/papers';
 import Comments from '../../../../../components/Comments.astro';  // ← 新增
 
+import WikiInlineLinks from '../../../../../components/WikiInlineLinks.astro';
+
+// import { getEntry } from 'astro:content';
+// let NotesContent: any = null;
+// try {   const notes = await getEntry('paperNotes', Astro.params.slug);   ({ Content: NotesContent } = await notes.render());} catch (_) {   }
+// 没有对应的解读文件就忽略
+// 
+
 export async function getStaticPaths() {
   const list = loadPapers();
   return list.map(p => ({ params: { slug: p.slug }, props: { paper: p } }));
 }
+
 const { paper } = Astro.props;
 const title = paper?.title || 'Paper';
 const desc = `${(paper?.authors||[]).join(', ')} · ${paper?.journal||''} · ${paper?.year||''}`;
@@ -52,6 +61,20 @@ const jsonld = {
         {paper.url && <a class="text-brand underline ml-3" href={paper.url} target="_blank" rel="nofollow">来源</a>}
       </div> : null}
     </div>
+
+
+
+<!-- 省略头部 -->
+<article class="prose">
+  <WikiInlineLinks>
+    <!-- 这里包住论文正文那一块（你原来输出正文的 HTML/变量） -->
+    <!-- 例如： -->
+    <p>... ... **淋巴细胞活性**用于反映 NK/T/B 等淋巴细胞的功能状态与效应能力，包括细胞毒性、增殖与细胞因子分泌等。  
+在探讨**免疫调节**时，研究者常结合 **Biobran** 等干预因素，综合评估该活性与机体免疫稳态之间的关联。 ... ...</p> 
+    <section set:html={paper.abstract} />
+  </WikiInlineLinks>
+</article>
+
 
     <!-- 评论区（懒加载按钮触发） -->
     <!-- 关键：把当前页面路径传给评论组件 -->
