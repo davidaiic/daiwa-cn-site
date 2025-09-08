@@ -20,17 +20,17 @@
           "functions": [
             {
               "name": "comment-list",
-              "runtime": "Nodejs18.15",
+              "runtime": "Nodejs12.16",
               "installDependency": true
             },
             {
               "name": "comment-post",
-              "runtime": "Nodejs18.15",
+              "runtime": "Nodejs12.16",
               "installDependency": true
             },
             {
               "name": "comment-hot",
-              "runtime": "Nodejs18.15",
+              "runtime": "Nodejs12.16",
               "installDependency": true
             }
           ]
