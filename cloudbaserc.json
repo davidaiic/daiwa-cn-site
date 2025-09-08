@@ -16,7 +16,7 @@
       "functions": {
         "use": "@cloudbase/framework-plugin-function",
         "inputs": {
-          "functionRootPath": "cloudfunctions",
+          "functionRootPath": "functions",
           "functions": [
             {
               "name": "comment-list",
