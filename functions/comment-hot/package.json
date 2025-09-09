@@ -1,19 +1,8 @@
 {
-  "name": "@function/comment-hot",
+  "name": "comment-hot",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "@cloudbase/node-sdk": "^3.10.1"
-  },
-  "tcbRepo": {
-    "type": "function"
-  },
-  "scripts": {
-    "tcb-ff": "tcb-ff",
-    "dev": "tcb cloudfunction run -w",
-    "deploy": "tcb cloudfunction deploy"
-  },
-  "devDependencies": {
-    "@cloudbase/functions-framework": "^1.14.0"
+    "@cloudbase/node-sdk": "^2.11.0"
   }
 }
