@@ -1,5 +1,5 @@
 {
-  "name": "@function/comment-list",
+  "name": "@function/comment-hot",
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
