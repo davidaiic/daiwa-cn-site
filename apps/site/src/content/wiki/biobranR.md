@@ -1,5 +1,5 @@
 ---
-title: "Biobran"
+title: Biobran
 aliases: ["MGN-3","米糠阿拉伯木聚糖复合物"]
 lang: "zh"
 ---

@@ -1,32 +1,53 @@
 ---
 /**
- * 把插槽里的纯文本里出现的 wiki 词条替换为站内 <a> 链接。
- * 词条来源：public/search/index.json（由 prebuild 脚本生成）
+ * 将插槽里的纯文本命中的 wiki 词条替换为站内 <a>。
+ * 变更：
+ * - 用 astro:content 直接取 wiki 集合（不再依赖 search/index.json）
+ * - href 自动加 BASE_URL 前缀，兼容 /daiwa-cn-site/ 子路径部署
+ * - 大小写不敏感（gi 标志）
  */
-import searchIndex from '../../public/search/index.json';
+import { getCollection } from 'astro:content';
 
-// 仅保留 /zh/wiki/ 下的词条
-const docs = (searchIndex?.docs ?? [])
-  .filter((d) => typeof d?.url === 'string' && d.url.startsWith('/zh/wiki/'))
-  .map((d) => ({
-    title: (d.title || '').trim(),
-    url: d.url.endsWith('/') ? d.url : `${d.url}/`,
+// 构造 BASE_URL（去掉末尾多余的 /，便于拼接）
+const BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+
+// 拿到所有 wiki 文档：slug -> /zh/wiki/:slug/
+const wiki = await getCollection('wiki');
+const docs = wiki
+  .map((e) => ({
+    title: (e.data?.title ?? e.slug)?.trim(),
+    url: `${BASE}/zh/wiki/${e.slug}/`,
   }))
   .filter((d) => d.title);
 
-// 正则转义
+// 渲染插槽得到原始 HTML
+//let html = (await Astro.slots.default?.()) ?? '';
+// 渲染默认插槽为 HTML 字符串（Astro v3/v4 正确写法）
+let html = (await Astro.slots.render('default')) ?? '';
+
 function esc(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// 渲染默认插槽为 HTML 字符串（Astro v3/v4 正确写法）
-let html = (await Astro.slots.render('default')) ?? '';
-
-// 逐个词条替换为链接：使用 Unicode 边界，尽量避免把词条的一部分或标签里的内容误命中
+// 逐个词条替换为链接（尽量避免命中词内字符：使用 Unicode 单词边界）
 for (const d of docs) {
-  const re = new RegExp(`(?<![\\p{L}\\p{N}])(${esc(d.title)})(?![\\p{L}\\p{N}])`, 'gu');
+  const term = d.title;
+  if (!term) continue;
+
+  // 大小写不敏感 (i)，Unicode (u)，全局 (g)
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])(${esc(term)})(?![\\p{L}\\p{N}])`, 'giu');
   html = html.replace(re, `<a class="wiki-link" href="${d.url}">$1</a>`);
 }
 ---
-
 <div set:html={html} />
+
+<style>
+/* 先提供一个温和的默认样式；若你暂时不想改样式可忽略 */
+.wiki-link {
+  text-decoration: none;
+  border-bottom: none;
+  /* 想立即改成主题蓝，可取消下面一行注释或把颜色换成你的主题变量 */
+  color: var(--theme-blue, #2563eb); 
+}
+.wiki-link:hover { text-decoration: underline; }
+</style>
