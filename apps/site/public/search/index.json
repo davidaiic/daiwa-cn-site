@@ -2,26 +2,25 @@
   "v": 1,
   "docs": [
     {
-      "id": "wiki:mianyi-tiaojie",
-      "url": "/zh/wiki/mianyi-tiaojie/",
-      "title": "免疫调节",
-      "summary": "机体通过细胞因子、免疫细胞亚群等机制对免疫反应进行上调或下调，以维持稳态与抗病能力的生物学过程。",
-      "tags": [
-        "免疫",
-        "生物学",
-        "机制"
-      ]
+      "id": "wiki:Biobran",
+      "url": "http://localhost:4321/wiki/Biobran/",
+      "title": "Biobran",
+      "summary": "",
+      "tags": []
     },
     {
-      "id": "wiki:linba-xibao-huoxing",
-      "url": "/zh/wiki/linba-xibao-huoxing/",
+      "id": "wiki:免疫调节",
+      "url": "http://localhost:4321/wiki/%E5%85%8D%E7%96%AB%E8%B0%83%E8%8A%82/",
+      "title": "免疫调节",
+      "summary": "",
+      "tags": []
+    },
+    {
+      "id": "wiki:淋巴细胞活性",
+      "url": "http://localhost:4321/wiki/%E6%B7%8B%E5%B7%B4%E7%BB%86%E8%83%9E%E6%B4%BB%E6%80%A7/",
       "title": "淋巴细胞活性",
-      "summary": "指 NK/T/B 等淋巴细胞的功能状态与效应能力，包括细胞毒性、增殖与细胞因子分泌等。",
-      "tags": [
-        "免疫",
-        "功能",
-        "评估"
-      ]
+      "summary": "",
+      "tags": []
     }
   ]
 }

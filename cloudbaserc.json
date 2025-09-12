@@ -10,7 +10,7 @@
           "installCommand": "npm ci || npm i",
           "buildCommand": "npm --prefix apps/site run build",
           "outputPath": "apps/site/dist",
-          "cloudPath": "/daiwa-cn-site"
+          "cloudPath": "/"
         }
       },
       "functions": {
@@ -35,9 +35,9 @@
             }
           ],
           "servicePaths": {
-            "comment-post": "/daiwa-cn-site/api/comment-post",
-            "comment-list": "/daiwa-cn-site/api/comment-list",
-            "comment-hot": "/daiwa-cn-site/api/comment-hot"
+            "comment-post": "/api/comment-post",
+            "comment-list": "/api/comment-list",
+            "comment-hot": "/api/comment-hot"
           }
         }
       }

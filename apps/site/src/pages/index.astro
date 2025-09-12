@@ -1,4 +1,59 @@
 ---
-import { withBase } from '../lib/url';
+// src/pages/index.astro
+import Base from '@/layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+// 读取 home 集合的第一条（我们就放一条 index.md）
+const [homeEntry] = await getCollection('home');
+
+let Content: any = null;
+let data: any = {};
+if (homeEntry) {
+  const rendered = await homeEntry.render();
+  Content = rendered.Content;
+  data = homeEntry.data || {};
+}
+
+// 兜底的 hero，避免 data.hero 未定义时报错
+const hero = data.hero ?? {
+  title: '大和米蕈（Biobran）',
+  subtitle: '天然来源的功能性多糖，关注免疫力与日常健康管理。',
+  actions: [
+    { label: '了解产品', href: '/biobran/大和米蕈/' },
+    { label: '临床文献', href: '/papers/' }
+  ]
+};
 ---
-<html lang="zh"><head><meta http-equiv="refresh" content={`0; url=${withBase('/zh/')}`} /></head><body></body></html>
+
+<Base title="大和药品（中国）">
+  <section class="py-12 md:py-20">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="grid md:grid-cols-2 gap-8 items-center">
+        <div>
+          <h1 class="text-3xl md:text-5xl font-bold leading-tight">
+            {hero.title}
+          </h1>
+          {hero.subtitle && <p class="mt-4 text-lg text-neutral-600">{hero.subtitle}</p>}
+          {Array.isArray(hero.actions) && hero.actions.length > 0 && (
+            <div class="mt-6 flex gap-3">
+              {hero.actions.map((a) => (
+                <a href={a.href} class="px-4 py-2 rounded bg-brand text-white">{a.label}</a>
+              ))}
+            </div>
+          )}
+        </div>
+        {hero.image && (
+          <div class="rounded overflow-hidden">
+            <img src={hero.image} alt={hero.title} loading="lazy" />
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <section class="py-10 border-t">
+    <div class="mx-auto max-w-3xl px-4 prose">
+      {Content ? <Content /> : null}
+    </div>
+  </section>
+</Base>

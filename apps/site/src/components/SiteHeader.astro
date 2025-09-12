@@ -1,0 +1,52 @@
+---
+// apps/site/src/components/SiteHeader.astro
+import { path } from '~/lib/url';
+
+const NAV = [
+  { label: '首页',         href: path('/') },
+  { label: '大和米蕈',     href: path('/biobran/') },
+  { label: '临床文献库',   href: path('/biobran/medical/papers/') },
+  { label: '专家与会议',   href: path('/biobran/medical/experts/') },
+  { label: '专栏',         href: path('/columns/') },
+  { label: '专家问答',         href: path('/wiki/') },
+  { label: '新闻',         href: path('/news/') },
+  { label: '关于',         href: path('/about/') },
+];
+
+const current = Astro.url.pathname; // 带 base 的真实 pathname
+function active(href: string) {
+  try {
+    // 只比对路径部分，忽略域名
+    const u = new URL(href, 'http://x');
+    return current === u.pathname || (u.pathname !== '/' && current.startsWith(u.pathname));
+  } catch { return false; }
+}
+---
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href={path('/')}>
+      <img src={path('/head_logo.svg')} alt="Daiwa Pharmaceutical" height="28" />
+    </a>
+
+    <nav class="nav">
+      {NAV.map(item => (
+        <a href={item.href} class:list={{ active: active(item.href) }}>{item.label}</a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  background: #fff; border-bottom: 1px solid #eee;
+}
+.site-header .wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+}
+.site-header .logo img { display: block; }
+.site-header .nav { margin-left: auto; display: flex; gap: 18px; flex-wrap: wrap; }
+.site-header .nav a { color:#1f2d3d; text-decoration: none; padding:6px 2px; }
+.site-header .nav a.active { color:#104e91; border-bottom:2px solid #104e91; }
+</style>

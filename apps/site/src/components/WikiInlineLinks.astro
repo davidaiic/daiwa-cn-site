@@ -1,53 +1,90 @@
 ---
-/**
- * 将插槽里的纯文本命中的 wiki 词条替换为站内 <a>。
- * 变更：
- * - 用 astro:content 直接取 wiki 集合（不再依赖 search/index.json）
- * - href 自动加 BASE_URL 前缀，兼容 /daiwa-cn-site/ 子路径部署
- * - 大小写不敏感（gi 标志）
- */
-import { getCollection } from 'astro:content';
-
-// 构造 BASE_URL（去掉末尾多余的 /，便于拼接）
-const BASE = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
-
-// 拿到所有 wiki 文档：slug -> /zh/wiki/:slug/
-const wiki = await getCollection('wiki');
-const docs = wiki
-  .map((e) => ({
-    title: (e.data?.title ?? e.slug)?.trim(),
-    url: `${BASE}/zh/wiki/${e.slug}/`,
-  }))
-  .filter((d) => d.title);
-
-// 渲染插槽得到原始 HTML
-//let html = (await Astro.slots.default?.()) ?? '';
-// 渲染默认插槽为 HTML 字符串（Astro v3/v4 正确写法）
-let html = (await Astro.slots.render('default')) ?? '';
-
-function esc(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// src/components/WikiInlineLinks.astro
+export interface Term {
+  title: string;
+  slug: string;             // 对应 /wiki/[slug]/
+  synonyms?: string[];
 }
 
-// 逐个词条替换为链接（尽量避免命中词内字符：使用 Unicode 单词边界）
-for (const d of docs) {
-  const term = d.title;
-  if (!term) continue;
-
-  // 大小写不敏感 (i)，Unicode (u)，全局 (g)
-  const re = new RegExp(`(?<![\\p{L}\\p{N}])(${esc(term)})(?![\\p{L}\\p{N}])`, 'giu');
-  html = html.replace(re, `<a class="wiki-link" href="${d.url}">$1</a>`);
+interface Props {
+  terms: Term[];
+  class?: string;
+  maxPerTerm?: number;      // 每个术语最多替换次数，默认 3
 }
+
+// 1) 拿到 slot 原始 HTML
+const { terms = [], class: cls = '', maxPerTerm = 3 } = Astro.props;
+const raw = await Astro.slots.render('default');   // 关键：正确的 Astro API
+
+// 2) 预处理术语：按长度降序，避免“免疫”先匹配掉“免疫调节”
+const entries = terms
+  .filter(t => t && (t.title || (t.synonyms && t.synonyms.length)))
+  .map(t => {
+    const set = new Set<string>();
+    if (t.title) set.add(t.title);
+    (t.synonyms || []).forEach(s => set.add(s));
+    // 去重、去空格
+    const keys = [...set].map(s => s.trim()).filter(Boolean);
+    return { slug: t.slug, keys };
+  })
+  .filter(e => e.keys.length > 0)
+  .sort((a, b) => {
+    const la = Math.max(...a.keys.map(k => k.length));
+    const lb = Math.max(...b.keys.map(k => k.length));
+    return lb - la;
+  });
+
+// 3) 文本节点替换：只处理“非标签片段”，避免破坏 HTML
+function linkify(html: string) {
+  if (!html || entries.length === 0) return html;
+  // 把标签作为分隔符，仅替换纯文本片段
+  const parts = html.split(/(<[^>]+>)/g);
+  for (let i = 0; i < parts.length; i++) {
+    const seg = parts[i];
+    if (!seg || seg.startsWith('<')) continue; // 跳过标签
+    let text = seg;
+
+    // 针对每个词条做有限次替换
+    for (const { slug, keys } of entries) {
+      let count = 0;
+      for (const key of keys) {
+        if (!key) continue;
+        // 中文/大小写：中文按原样，英文用 i 忽略大小写；仅匹配文字边界（对中文不强制，因为分词缺失）
+        const hasLatin = /[A-Za-z]/.test(key);
+        const safe = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = hasLatin
+          ? new RegExp(`\\b(${safe})\\b`, 'gi')
+          : new RegExp(`(${safe})`, 'g');
+
+        text = text.replace(re, (m) => {
+          if (count >= maxPerTerm) return m;
+          count++;
+          const disp = m; // 保留原显示大小写/汉字
+          return `<a href="/wiki/${slug}/" class="wikilink" data-wiki="${slug}">${disp}</a>`;
+        });
+        if (count >= maxPerTerm) break;
+      }
+    }
+    parts[i] = text;
+  }
+  return parts.join('');
+}
+
+const html = linkify(raw);
 ---
-<div set:html={html} />
+
+<div class={cls ? `inline-wiki ${cls}` : 'inline-wiki'}>
+  <Fragment set:html={html} />
+</div>
 
 <style>
-/* 先提供一个温和的默认样式；若你暂时不想改样式可忽略 */
-.wiki-link {
+.inline-wiki a.wikilink{
+  color: var(--color-brand, #1e66f5);  /* 主题蓝 */
   text-decoration: none;
-  border-bottom: none;
-  /* 想立即改成主题蓝，可取消下面一行注释或把颜色换成你的主题变量 */
-  color: var(--theme-blue, #2563eb); 
+  border-bottom: 1px dotted rgba(30,102,245,.35); /* “下滑点”去掉可删这一行 */
 }
-.wiki-link:hover { text-decoration: underline; }
+.inline-wiki a.wikilink:hover{
+  text-decoration: underline;
+  border-bottom: none;
+}
 </style>

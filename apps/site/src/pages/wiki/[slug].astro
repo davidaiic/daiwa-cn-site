@@ -1,7 +1,7 @@
 ---
 import Base from '@/layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
-import WikiInlineLinks from '../../../components/WikiInlineLinks.astro';
+import WikiInlineLinks from '../../components/WikiInlineLinks.astro';
 
 import { getEntryBySlug } from 'astro:content';
 const wikiIntro = await getEntryBySlug('snippets', 'wiki-intro');

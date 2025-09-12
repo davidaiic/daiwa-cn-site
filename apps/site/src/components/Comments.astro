@@ -9,23 +9,19 @@ const { articleId } = Astro.props;
 
 <script is:inline>
   (function () {
-    const root = document.getElementById('comments-root');
-    const mount = document.getElementById('comments');
-    const loadBtn = document.getElementById('loadComments');
+      const root = document.getElementById('comments-root');
+      const mount = document.getElementById('comments');
+      const loadBtn = document.getElementById('loadComments');
 
-    // 关键兜底：优先取组件传入的 data-article-id，否则退回浏览器当前路径
-    const articleId = (root?.dataset?.articleId && root.dataset.articleId.trim())
-      ? root.dataset.articleId
-      : (typeof location !== 'undefined' ? location.pathname : '');
+      const articleId = (root?.dataset?.articleId && root.dataset.articleId.trim())
+        ? root.dataset.articleId
+        : (typeof location !== 'undefined' ? location.pathname : '');
 
-    // 优先读取函数域名（.env 里 PUBLIC_TCB_API_BASE），否则回退同域
-    const meta = document.querySelector('meta[name="tcb-api-base"]');
-    const apiBase =
-      (meta && meta.content ? meta.content.replace(/\/+$/, '') : location.origin) +
-      (document.baseURI.includes('/daiwa-cn-site/') ? '/daiwa-cn-site' : '');
+      const meta = document.querySelector('meta[name="tcb-api-base"]');
+      const apiBase = (meta && meta.content ? meta.content.replace(/\/+$/, '') : location.origin);
 
-    const listApi = `${apiBase}/api/comment-list`;
-    const postApi = `${apiBase}/api/comment-post`;
+      const listApi = `${apiBase}/api/comment-list`;
+      const postApi = `${apiBase}/api/comment-post`;
 
     function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
 

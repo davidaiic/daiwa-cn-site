@@ -1,19 +1,25 @@
 ---
-import '../styles/globals.css';
-const { title = '大和米蕈中国 | Daiwa Biobran', description = '官方站点', lang = 'zh' } = Astro.props;
+// apps/site/src/layouts/BaseLayout.astro
+import SiteHeader from '~/components/SiteHeader.astro';
+import SiteFooter from '~/components/SiteFooter.astro';
+import { BASE } from '~/lib/url';
+
+interface Props { title?: string; description?: string; }
+const { title = 'Daiwa CN', description = '' } = Astro.props;
 ---
-<html lang={lang}>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="tcb-api-base" content={import.meta.env.PUBLIC_TCB_API_BASE || ''} />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <link rel="icon" href="/daiwa-cn-site/favicon.svg" />
-  </head>
-  <body class="min-h-screen flex flex-col">
-    <slot name="header" />
-    <main class="flex-1"><slot /></main>   <!-- ← 这里用 <slot /> -->
-    <slot name="footer" />
-  </body>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <base href={BASE} />
+  <title>{title}</title>
+  {description && <meta name="description" content={description} />}
+  <meta name="tcb-api-base" content={globalThis?.location?.origin || ''} />
+</head>
+<body>
+  <SiteHeader />
+  <main><slot /></main>
+  <SiteFooter />
+</body>
 </html>

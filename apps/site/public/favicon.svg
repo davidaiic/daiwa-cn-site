@@ -1,10 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0" stop-color="#0F4C81"></stop>
-      <stop offset="1" stop-color="#1F6FB5"></stop>
-    </linearGradient>
-  </defs>
-  <rect width="64" height="64" rx="12" fill="url(#g)"></rect>
-  <text x="50%" y="54%" text-anchor="middle" font-size="28" font-family="Arial" fill="#fff">D</text>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 21.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="图层_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 60.6 61.7" style="enable-background:new 0 0 60.6 61.7;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#194375;}
+</style>
+<g id="グループ_1446" transform="translate(-189.983 -130.192)">
+	<path id="パス_687" class="st0" d="M212.5,178.8c-1.7,0.7-3.6,0.9-5.4,0.8c-4.1,0-8-2.6-8-9.5c0-8.8,6.6-19.1,11.5-24.3
+		c-3.8,2.4-20.5,17.5-20.5,31.6c0,7.2,4.7,11,12.7,11c6.7,0,14.2-3.4,15.9-4.6v-53.6l-6.2,5.2V178.8z"/>
+	<path id="パス_688" class="st0" d="M237.8,133.7c-6.7,0-14.2,3.4-15.9,4.6v53.6l6.2-5.2v-43.4c1.7-0.7,3.6-0.9,5.4-0.8
+		c4.1,0,8,2.6,8,9.5c0,8.8-6.6,19.1-11.5,24.3c3.8-2.4,20.5-17.5,20.5-31.6C250.6,137.6,245.9,133.7,237.8,133.7z"/>
+</g>
 </svg>

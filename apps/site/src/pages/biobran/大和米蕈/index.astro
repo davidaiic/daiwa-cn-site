@@ -1,0 +1,14 @@
+---
+import WikiInlineLinks from '@/components/WikiInlineLinks.astro';
+const terms = [
+  { title: 'Biobran', slug: 'biobran', synonyms: ['大和米蕈'] },
+  { title: '淋巴细胞活性', slug: 'linba-xibao-huoxing' },
+  { title: '免疫调节', slug: 'mianyi-tiaojie' }
+];
+---
+<h1>大和米蕈</h1>
+<WikiInlineLinks terms={terms} class="prose">
+  <Fragment>
+    大和米蕈（Biobran）是以米糠阿拉伯木聚糖为主体成分的营养产品，常用于讨论免疫调节与淋巴细胞活性等主题。
+  </Fragment>
+</WikiInlineLinks>

@@ -1,0 +1,44 @@
+---
+// apps/site/src/components/SiteFooter.astro
+import { path } from '~/lib/url';
+---
+<footer class="site-footer">
+  <div class="wrap grid">
+    <section>
+      <h3>产品与解决方案</h3>
+      <a href={path('/biobran/')}>大和米蕈</a>
+      <a href={path('/biobran/medical/papers/')}>临床文献库</a>
+      <a href={path('/biobran/medical/experts/')}>专家与会议</a>
+    </section>
+    <section>
+      <h3>资源</h3>
+      <a href={path('/columns/')}>专栏</a>
+      <a href={path('/wiki/')}>术语</a>
+      <a href={path('/news/')}>新闻</a>
+    </section>
+    <section>
+      <h3>公司</h3>
+      <a href={path('/about/')}>关于我们</a>
+      <a href={path('/contact/')}>联系我们</a>
+      <a href={path('/sitemap-0.xml')}>网站地图</a>
+    </section>
+    <section>
+      <h3>合规与隐私</h3>
+      <a href={path('/robots.txt')}>Robots</a>
+      <a href={path('/.well-known/ai.json')}>AI JSON</a>
+      <a href="#">隐私政策（占位）</a>
+    </section>
+  </div>
+  <div class="copy">© {new Date().getFullYear()} Daiwa Pharmaceutical. 保留所有权利。</div>
+</footer>
+
+<style>
+.site-footer { background:#0b1a2b; color:#cfd7e6; margin-top:48px; }
+.site-footer .wrap { max-width:1080px; margin:0 auto; padding:28px 16px; }
+.site-footer .grid { display:grid; gap:18px; grid-template-columns: repeat(4,minmax(0,1fr)); }
+.site-footer h3 { color:#fff; font-size:14px; margin:0 0 10px; }
+.site-footer a { display:block; color:#cfd7e6; text-decoration:none; padding:4px 0; }
+.site-footer a:hover { color:#fff; }
+.copy { border-top:1px solid #24364f; padding:12px 16px; text-align:center; font-size:12px; }
+@media (max-width: 760px){ .site-footer .grid { grid-template-columns:1fr 1fr; } }
+</style>

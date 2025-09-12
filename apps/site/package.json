@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
+    "prebuild": "node scripts/extract-wiki-terms.mjs && node scripts/gen-search-index.mjs && node scripts/gen-sitemaps.mjs",
     "build": "astro build",
-    "preview": "astro preview",
-    "prebuild": "node scripts/extract-wiki-terms.mjs && node scripts/gen-search-index.mjs && node scripts/gen-sitemaps.mjs"
+    "preview": "npm run build && astro preview --host",
+    "dev": "astro dev",
+    "clean": "rimraf dist .cache"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.1",

@@ -1,0 +1,14 @@
+---
+import Layout from '~/layouts/BaseLayout.astro';
+import { path } from '~/lib/url';
+---
+<Layout title="大和米蕈 | Daiwa">
+  <section class="wrap" style="padding:28px 0;">
+    <h1>大和米蕈（Biobran / MGN-3）</h1>
+    <p>以米糠衍生阿拉伯木聚糖复合体为核心的免疫营养产品，相关研究覆盖 NK/T/B 细胞功能等方向。</p>
+    <ul>
+      <li><a href={path('/biobran/medical/papers/')}>临床文献库</a></li>
+      <li><a href={path('/biobran/medical/experts/')}>专家与会议</a></li>
+    </ul>
+  </section>
+</Layout>
