@@ -32,7 +32,9 @@ const groups = [
         <ul class="space-y-2 text-white/80">
           {g.items.map(i => (
             <li>
-              <a href={i.href} class={i.dev ? "js-dev text-white/40 cursor-not-allowed" : "hover:text-white"}>
+              <a
+                href={i.href}
+                class={i.dev ? "js-dev text-white/40 cursor-not-allowed" : "hover:text-white"}>
                 {i.label}
               </a>
             </li>
@@ -51,10 +53,14 @@ const groups = [
     </div>
   </div>
 </footer>
+
 <script is:inline type="module">
   import { toast } from "../utils/toast.js";
   const root = document.currentScript?.closest('footer');
   root?.querySelectorAll('a.js-dev').forEach(a => {
-    a.addEventListener('click', (e) => { e.preventDefault(); toast('正在开发中'); });
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      toast('正在开发中');
+    });
   });
 </script>

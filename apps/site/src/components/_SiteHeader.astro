@@ -1,0 +1,115 @@
+---
+import "../styles/global.css";
+import { topRight, mainNav } from "../config/nav";
+const logoHeight = 88; // px：根据你的要求调整为 88
+---
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
+  <!-- 顶部行：Logo + 右侧固定链接 -->
+  <div class="max-w-6xl mx-auto px-4 h-12 flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3">
+      <img src="/head_logo.svg" alt="Daiwa Pharmaceutical" style={`height:${logoHeight}px`} class="h-11 w-auto" />
+    </a>
+    <nav class="hidden md:flex items-center gap-6 text-sm">
+      {topRight.map(i => (
+        <a
+          href={i.href}
+          class={i.dev ? "js-dev text-gray-400 cursor-not-allowed" : "text-gray-700 hover:text-brand"}>
+          {i.label}
+        </a>
+      ))}
+    </nav>
+    <button id="hamburgerBtn" class="md:hidden hamburger" aria-label="open menu" aria-controls="mobileMenu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- 第二行：主菜单（桌面） -->
+  <div class="hidden md:block border-t border-gray-100">
+    <nav class="max-w-6xl mx-auto px-4 h-12 flex items-center gap-6">
+      {mainNav.map(i => (
+        <a
+          href={i.href}
+          class={i.dev ? "js-dev text-gray-400 cursor-not-allowed" : "text-gray-800 hover:text-brand"}>
+          {i.label}
+        </a>
+      ))}
+    </nav>
+  </div>
+
+  <!-- 移动端：蒙层 + 抽屉 -->
+  <div id="menuMask" class="md:hidden fixed inset-0 bg-black/30 opacity-0 pointer-events-none transition-opacity"></div>
+
+  <aside
+    id="mobileMenu"
+    class="md:hidden fixed top-0 right-0 h-full w-80 max-w-[85%] bg-white shadow-xl transition-transform duration-300 translate-x-full">
+    <div class="px-4 py-3 flex items-center justify-between border-b">
+      <span class="text-sm text-gray-500">菜单</span>
+      <button id="hamburgerClose" class="hamburger open" aria-label="close menu"><span></span><span></span><span></span></button>
+    </div>
+    <div class="p-4 grid gap-1">
+      <div class="text-xs text-gray-400 px-2 pt-2">快速链接</div>
+      {topRight.map(i => (
+        <a
+          href={i.href}
+          class={`px-3 py-2 rounded ${i.dev ? 'js-dev text-gray-400 cursor-not-allowed' : 'hover:bg-gray-50'}`}>
+          {i.label}
+        </a>
+      ))}
+      <div class="text-xs text-gray-400 px-2 pt-4">导航</div>
+      {mainNav.map(i => (
+        <a
+          href={i.href}
+          class={`px-3 py-2 rounded ${i.dev ? 'js-dev text-gray-400 cursor-not-allowed' : 'hover:bg-gray-50'}`}>
+          {i.label}
+        </a>
+      ))}
+    </div>
+  </aside>
+</header>
+
+<script is:inline type="module">
+  import { toast } from "../utils/toast.js";
+
+  const btn   = document.getElementById('hamburgerBtn');
+  const close = document.getElementById('hamburgerClose');
+  const menu  = document.getElementById('mobileMenu');
+  const mask  = document.getElementById('menuMask');
+
+  const setOpen = (open) => {
+    btn?.classList.toggle('open', open);
+    btn?.setAttribute('aria-expanded', String(open));
+
+    menu?.classList.toggle('translate-x-0', open);
+    menu?.classList.toggle('translate-x-full', !open);
+
+    mask?.classList.toggle('opacity-100', open);
+    mask?.classList.toggle('pointer-events-auto', open);
+    mask?.classList.toggle('opacity-0', !open);
+    mask?.classList.toggle('pointer-events-none', !open);
+
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+
+  btn?.addEventListener('click', () => {
+    const open = !btn.classList.contains('open');
+    setOpen(open);
+  });
+  close?.addEventListener('click', () => setOpen(false));
+  mask?.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+
+  // 未完成项：统一弹“正在开发中”
+  const devLinks = document.querySelectorAll('a.js-dev');
+  devLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      setOpen(false);
+      toast('正在开发中');
+    });
+  });
+
+  // 移动抽屉里，点击可用链接后自动关闭
+  menu?.querySelectorAll('a:not(.js-dev)').forEach(a => {
+    a.addEventListener('click', () => setOpen(false));
+  });
+</script>

@@ -1,52 +1,91 @@
 ---
-// apps/site/src/components/SiteHeader.astro
-import { path } from '~/lib/url';
-
-const NAV = [
-  { label: '首页',         href: path('/') },
-  { label: '大和米蕈',     href: path('/biobran/') },
-  { label: '临床文献库',   href: path('/biobran/medical/papers/') },
-  { label: '专家与会议',   href: path('/biobran/medical/experts/') },
-  { label: '专栏',         href: path('/columns/') },
-  { label: '专家问答',         href: path('/wiki/') },
-  { label: '新闻',         href: path('/news/') },
-  { label: '关于',         href: path('/about/') },
-];
-
-const current = Astro.url.pathname; // 带 base 的真实 pathname
-function active(href: string) {
-  try {
-    // 只比对路径部分，忽略域名
-    const u = new URL(href, 'http://x');
-    return current === u.pathname || (u.pathname !== '/' && current.startsWith(u.pathname));
-  } catch { return false; }
-}
+import "../styles/global.css";
+import { topRight, mainNav } from "../config/nav";
+const logoHeight = 'clamp(36px, 7vw, 56px)';
 ---
-<header class="site-header">
-  <div class="wrap">
-    <a class="logo" href={path('/')}>
-      <img src={path('/head_logo.svg')} alt="Daiwa Pharmaceutical" height="28" />
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-gray-100">
+  <div class="max-w-6xl mx-auto px-4 h-[56px] md:h-[72px] flex items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-3">
+      <img src="/head_logo.svg" alt="Daiwa Pharmaceutical" style={`height:${logoHeight}`} class="w-auto" />
     </a>
-
-    <nav class="nav">
-      {NAV.map(item => (
-        <a href={item.href} class:list={{ active: active(item.href) }}>{item.label}</a>
+    <nav class="hidden md:flex items-center gap-6 text-sm">
+      {topRight.map(i => (
+        <a href={i.href} class={i.dev ? "js-dev text-gray-400 cursor-not-allowed" : "text-gray-700 hover:text-brand"}>
+          {i.label}
+        </a>
+      ))}
+    </nav>
+    <button id="hamburgerBtn" class="md:hidden hamburger" aria-label="open menu" aria-controls="mobileMenu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="hidden md:block border-t border-gray-100">
+    <nav class="max-w-6xl mx-auto px-4 h-12 flex items-center gap-6">
+      {mainNav.map(i => (
+        <a href={i.href} class={i.dev ? "js-dev text-gray-400 cursor-not-allowed" : "text-gray-800 hover:text-brand"}>
+          {i.label}
+        </a>
       ))}
     </nav>
   </div>
+  <div id="menuMask" class="md:hidden fixed inset-0 z-[80] bg-black/50 opacity-0 pointer-events-none transition-opacity duration-200"></div>
+  <aside id="mobileMenu" class="md:hidden fixed inset-y-0 right-0 z-[90] w-[86%] max-w-[22rem] bg-white shadow-2xl translate-x-full transition-transform duration-300 will-change-transform overscroll-contain">
+    <div class="flex h-full flex-col">
+      <div class="px-4 py-3 flex items-center justify-between border-b bg-white/95 backdrop-blur sticky top-0 z-10 shadow-sm">
+        <span class="text-sm text-gray-500">菜单</span>
+        <button id="hamburgerClose" class="hamburger open" aria-label="close menu"><span></span><span></span><span></span></button>
+      </div>
+      <nav class="flex-1 overflow-y-auto p-2">
+        <div class="text-xs text-gray-400 px-2 pt-2">快速链接</div>
+        {topRight.map(i => (
+          <a href={i.href} class={`block px-3 py-2 rounded ${i.dev ? 'js-dev text-gray-400 cursor-not-allowed' : 'hover:bg-gray-50'}`}>
+            {i.label}
+          </a>
+        ))}
+        <div class="text-xs text-gray-400 px-2 pt-4">导航</div>
+        {mainNav.map(i => (
+          <a href={i.href} class={`block px-3 py-2 rounded ${i.dev ? 'js-dev text-gray-400 cursor-not-allowed' : 'hover:bg-gray-50'}`}>
+            {i.label}
+          </a>
+        ))}
+        <div class="h-6"></div>
+      </nav>
+      <div class="pb-[env(safe-area-inset-bottom)]"></div>
+    </div>
+  </aside>
 </header>
-
-<style>
-.site-header {
-  position: sticky; top: 0; z-index: 50;
-  background: #fff; border-bottom: 1px solid #eee;
-}
-.site-header .wrap {
-  max-width: 1080px; margin: 0 auto;
-  padding: 12px 16px; display: flex; align-items: center; gap: 12px;
-}
-.site-header .logo img { display: block; }
-.site-header .nav { margin-left: auto; display: flex; gap: 18px; flex-wrap: wrap; }
-.site-header .nav a { color:#1f2d3d; text-decoration: none; padding:6px 2px; }
-.site-header .nav a.active { color:#104e91; border-bottom:2px solid #104e91; }
-</style>
+<script is:inline type="module">
+  import { toast } from "../utils/toast.js";
+  let pushedHistory = false;
+  const btn   = document.getElementById('hamburgerBtn');
+  const close = document.getElementById('hamburgerClose');
+  const menu  = document.getElementById('mobileMenu');
+  const mask  = document.getElementById('menuMask');
+  // Portal to body to avoid fixed-position being clipped by header with backdrop/filter/transform
+  const PORTAL_ID = 'menu-portal-root';
+  let portal = document.getElementById(PORTAL_ID);
+  if (!portal) { portal = document.createElement('div'); portal.id = PORTAL_ID; document.body.appendChild(portal); }
+  const dupMask = document.querySelectorAll('#menuMask'); dupMask.forEach(n => { if (n !== mask) n.remove(); });
+  const dupMenu = document.querySelectorAll('#mobileMenu'); dupMenu.forEach(n => { if (n !== menu) n.remove(); });
+  if (mask && mask.parentElement !== portal) portal.appendChild(mask);
+  if (menu && menu.parentElement !== portal) portal.appendChild(menu);
+  const setOpen = (open) => {
+    btn?.classList.toggle('open', open);
+    btn?.setAttribute('aria-expanded', String(open));
+    menu?.classList.toggle('translate-x-0', open);
+    menu?.classList.toggle('translate-x-full', !open);
+    mask?.classList.toggle('opacity-100', open);
+    mask?.classList.toggle('pointer-events-auto', open);
+    mask?.classList.toggle('opacity-0', !open);
+    mask?.classList.toggle('pointer-events-none', !open);
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open && !pushedHistory) { history.pushState({ sheet: 'menu' }, '', location.href); pushedHistory = true; window.addEventListener('popstate', onPop, { once: true }); }
+  };
+  function onPop(){ setOpen(false); pushedHistory = false; }
+  btn?.addEventListener('click', () => setOpen(!btn.classList.contains('open')));
+  close?.addEventListener('click', () => setOpen(false));
+  mask?.addEventListener('click', () => setOpen(false));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
+  document.querySelectorAll('a.js-dev').forEach(a => { a.addEventListener('click', (e) => { e.preventDefault(); setOpen(false); toast('正在开发中'); }); });
+  menu?.querySelectorAll('a:not(.js-dev)').forEach(a => { a.addEventListener('click', () => setOpen(false)); });
+</script>
