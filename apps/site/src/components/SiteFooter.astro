@@ -1,5 +1,4 @@
 ---
-import { toast } from "../utils/toast.js";
 const groups = [
   { title: "产品与服务", items: [
     { label: "产品", href: "/biobran/" },
@@ -43,7 +42,7 @@ const groups = [
   </div>
   <div class="border-t border-white/10">
     <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between text-xs text-white/70">
-      <div>© {new Date().getFullYear()} Daiwa Pharmaceutical Co.,Ltd.</div>
+      <div>© {new Date().getFullYear()}中国独家经销商/总代理 of Daiwa Pharmaceutical Co.,Ltd.</div>
       <div class="flex items-center gap-4">
         <a href="/privacy/" class="hover:text-white">隐私政策</a>
         <a href="/terms/" class="hover:text-white">使用条款</a>
@@ -52,7 +51,17 @@ const groups = [
   </div>
 </footer>
 <script is:inline type="module">
-  import { toast } from "../utils/toast.js";
+  function toast(msg){
+    const el = document.createElement('div');
+    el.textContent = msg;
+    Object.assign(el.style, {
+      position: 'fixed', left: '50%', bottom: '24px', transform: 'translateX(-50%)',
+      background: 'rgba(0,0,0,.82)', color: '#fff', padding: '10px 14px',
+      borderRadius: '12px', fontSize: '14px', lineHeight: '1', zIndex: 1000,
+      boxShadow: '0 4px 14px rgba(0,0,0,.25)', pointerEvents: 'none'
+    });
+    document.body.appendChild(el); setTimeout(() => el.remove(), 1800);
+  }
   const root = document.currentScript?.closest('footer');
   root?.querySelectorAll('a.js-dev').forEach(a => {
     a.addEventListener('click', (e) => { e.preventDefault(); toast('正在开发中'); });

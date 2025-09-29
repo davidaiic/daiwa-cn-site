@@ -2,7 +2,7 @@
 hero:
   title: 大和米蕈（Biobran）
   subtitle: 天然来源的功能性多糖，关注免疫力与日常健康管理。
-  image: /images/hero/biobran-hero.jpg
+  image: /images/biobran-hero.jpg
   actions:
     - label: 了解产品
       href: /biobran/大和米蕈/

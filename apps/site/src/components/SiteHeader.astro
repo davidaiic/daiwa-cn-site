@@ -55,20 +55,26 @@ const logoHeight = 'clamp(36px, 7vw, 56px)';
   </aside>
 </header>
 <script is:inline type="module">
-  import { toast } from "../utils/toast.js";
+  function toast(msg){
+    const el = document.createElement('div');
+    el.textContent = msg;
+    Object.assign(el.style, {
+      position: 'fixed', left: '50%', bottom: '24px', transform: 'translateX(-50%)',
+      background: 'rgba(0,0,0,.82)', color: '#fff', padding: '10px 14px',
+      borderRadius: '12px', fontSize: '14px', lineHeight: '1', zIndex: 1000,
+      boxShadow: '0 4px 14px rgba(0,0,0,.25)', pointerEvents: 'none'
+    });
+    document.body.appendChild(el); setTimeout(() => el.remove(), 1800);
+  }
   let pushedHistory = false;
   const btn   = document.getElementById('hamburgerBtn');
   const close = document.getElementById('hamburgerClose');
   const menu  = document.getElementById('mobileMenu');
   const mask  = document.getElementById('menuMask');
-  // Portal to body to avoid fixed-position being clipped by header with backdrop/filter/transform
   const PORTAL_ID = 'menu-portal-root';
   let portal = document.getElementById(PORTAL_ID);
   if (!portal) { portal = document.createElement('div'); portal.id = PORTAL_ID; document.body.appendChild(portal); }
-  const dupMask = document.querySelectorAll('#menuMask'); dupMask.forEach(n => { if (n !== mask) n.remove(); });
-  const dupMenu = document.querySelectorAll('#mobileMenu'); dupMenu.forEach(n => { if (n !== menu) n.remove(); });
-  if (mask && mask.parentElement !== portal) portal.appendChild(mask);
-  if (menu && menu.parentElement !== portal) portal.appendChild(menu);
+  [mask, menu].forEach(n => { if (n && n.parentElement !== portal) portal.appendChild(n); });
   const setOpen = (open) => {
     btn?.classList.toggle('open', open);
     btn?.setAttribute('aria-expanded', String(open));
@@ -86,6 +92,8 @@ const logoHeight = 'clamp(36px, 7vw, 56px)';
   close?.addEventListener('click', () => setOpen(false));
   mask?.addEventListener('click', () => setOpen(false));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setOpen(false); });
-  document.querySelectorAll('a.js-dev').forEach(a => { a.addEventListener('click', (e) => { e.preventDefault(); setOpen(false); toast('正在开发中'); }); });
-  menu?.querySelectorAll('a:not(.js-dev)').forEach(a => { a.addEventListener('click', () => setOpen(false)); });
+  document.querySelectorAll('a.js-dev').forEach(a => {
+    a.addEventListener('click', (e) => { e.preventDefault(); setOpen(false); toast('正在开发中'); });
+  });
+  menu?.querySelectorAll('a:not(.js-dev)').forEach(a => a.addEventListener('click', () => setOpen(false)));
 </script>
