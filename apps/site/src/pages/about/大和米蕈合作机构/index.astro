@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const pageTitle = '大和米蕈合作机构';
+const pageDesc = 'Biobran® 全球合作机构与研究伙伴一览（英文/中文），按瀑布流宫格展示 LOGO 与简介。';
+
+const partners = [
+  { slug: 'cairo-university', en: 'Cairo University', zh: '开罗大学（埃及）', brief: '埃及历史悠久的综合性公立大学，医学与药学学科实力强，长期关注免疫、肿瘤与公共卫生研究，拥有广泛的国际协作网络。' },
+  { slug: 'aichi-gakusen-university', en: 'Aichi Gakusen University', zh: '爱知学泉大学（日本）', brief: '日本私立大学，聚焦健康与生活科学、教育与社会福祉等领域，重视与地方产业及医疗机构的产学研合作与应用型研究。' },
+  { slug: 'charles-r-drew-university', en: 'Charles R. Drew University of Medicine and Science', zh: '查尔斯·德鲁医科大学（美国）', brief: '位于洛杉矶的医科大学，面向多元社区的医疗与公共卫生需求，擅长转化医学与群体健康研究。' },
+  { slug: 'chiba-university', en: 'Chiba University', zh: '千叶大学（日本）', brief: '日本一流研究型大学，医学部与生命科学学科活跃，基础研究与临床协作并重，在免疫与分子生物学方面具有优势。' },
+  { slug: 'dokkyo-medical-university', en: 'Dokkyo Medical University', zh: '独协医科大学（日本）', brief: '注重临床与基础医学融合，围绕免疫、感染与肿瘤等方向开展研究与教学，并与地区医院保持稳定合作。' },
+  { slug: 'hirosaki-university', en: 'Hirosaki University', zh: '弘前大学（日本）', brief: '以流行病学、老年医学与公共卫生研究见长，致力于区域健康与慢性病防治的长期纵向研究。' },
+  { slug: 'mcmaster-university', en: 'McMaster University', zh: '麦克马斯特大学（加拿大）', brief: '以循证医学与问题导向教学闻名，生物医学、免疫学与生物材料研究实力强，产学研合作紧密。' },
+  { slug: 'nagoya-city-university', en: 'Nagoya City University', zh: '名古屋市立大学（日本）', brief: '医学与药学并重，推动基础—临床—产业协同创新，在药物开发与转化医学方面建立了良好平台。' },
+  { slug: 'nagoya-university', en: 'Nagoya University', zh: '名古屋大学（日本）', brief: '日本顶尖研究型国立大学，生命科学、材料与医学交叉优势突出，拥有国际化的研究与人才培养体系。' },
+  { slug: 'san-gerardo-hospital', en: 'San Gerardo Hospital', zh: '桑杰拉多医院（意大利）', brief: '意大利知名综合医院，重视肿瘤与内科领域的临床研究与指南实践，具备跨中心协作能力。' },
+  { slug: 'sasc-cri', en: 'Slovak Academy of Sciences, Cancer Research Institute', zh: '斯洛伐克科学院·癌症研究所（斯洛伐克）', brief: '面向肿瘤免疫与分子靶向治疗的基础与转化研究，开展国际合作与临床前验证。' },
+  { slug: 'st-george-hospital-au', en: 'St George Hospital', zh: '圣乔治医院（澳大利亚）', brief: '澳大利亚大型教学医院，在肿瘤、消化疾病与重症护理等领域具备临床研究与多学科协作能力。' },
+  { slug: '108-military-central-hospital', en: 'The 108 Military Central Hospital', zh: '越南108军中央医院（越南）', brief: '越南国家级三甲医院，擅长器官移植、肿瘤与创伤救治，推进规范化临床研究与区域医疗协作。' },
+  { slug: 'the-university-of-tokyo', en: 'Tokyo University', zh: '东京大学（日本）', brief: '日本顶尖研究型大学，在免疫学、分子生物学与创新医疗技术方面拥有世界级科研实力。' },
+  { slug: 'ucla', en: 'University of California at Los Angeles (UCLA)', zh: '加州大学洛杉矶分校（美国）', brief: '跨学科生物医学研究中心密集，免疫、肿瘤与精准医学方向成果丰富，转化落地能力强。' },
+  { slug: 'uci', en: 'University of California, Irvine', zh: '加州大学欧文分校（美国）', brief: '在免疫学、微生物与代谢相关研究方面活跃，推动基础到临床的协同创新。' },
+  { slug: 'university-of-mansoura', en: 'University of Mansoura', zh: '曼苏拉大学（埃及）', brief: '埃及重要的研究与医疗中心之一，肝移植与肾病诊疗享有声誉，近年加强实验室与临床协作。' },
+  { slug: 'university-of-miami', en: 'University of Miami', zh: '迈阿密大学（美国）', brief: '米勒医学院在神经、肿瘤与免疫疗法领域布局完整，重视产学研与医疗系统协作。' },
+  { slug: 'university-of-pecs', en: 'University of Pecs', zh: '佩奇大学（匈牙利）', brief: '匈牙利历史最悠久的大学之一，医学院与药学院具备转化研究与临床试验能力。' },
+  { slug: 'university-of-tuebingen', en: 'University of Tuebingen', zh: '图宾根大学（德国）', brief: '欧洲知名研究型大学，在肿瘤免疫、细胞治疗与生物信息学方面位居前沿。' },
+];
+---
+
+<BaseLayout title={`${pageTitle} | Biobran®|大和米蕈®|Lentin Plus LY（中国官网）`} description={pageDesc}>
+  <main class="mx-auto max-w-3xl md:max-w-6xl px-4 md:px-6 py-8 md:py-12">
+    <header class="mb-8 md:mb-12">
+      <nav class="text-sm text-gray-500 mb-2" aria-label="breadcrumbs">
+        <ol class="flex items-center gap-2">
+          <li><a href="/" class="hover:underline">首页</a></li>
+          <li aria-hidden="true">/</li>
+          <li><a href="/about/" class="hover:underline">关于</a></li>
+          <li aria-hidden="true">/</li>
+          <li class="text-gray-700">大和米蕈合作机构</li>
+        </ol>
+      </nav>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-brand">大和米蕈合作机构</h1>
+      <p class="mt-2 text-gray-600">以错落的瀑布宫格展示 Biobran® 全球合作机构。LOGO（白底）、英文名、中文名、简介均可在后台维护。</p>
+    </header>
+
+    <section class="columns-1 sm:columns-2 lg:columns-3 gap-6 [column-fill:_balance]">
+      {partners.map((p) => (
+        <article class="break-inside-avoid mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <figure class="bg-white flex items-center justify-center h-28 md:h-32 px-4">
+            <img src={`/images/partners/${p.slug}.png`} alt={`${p.en} logo`} class="max-h-20 md:max-h-24 w-auto object-contain" loading="lazy" width="320" height="160" />
+          </figure>
+          <div class="px-4 pt-3 pb-4">
+            <h3 class="text-base md:text-lg font-semibold text-brand leading-snug">{p.en}</h3>
+            <p class="text-sm text-gray-600">{p.zh}</p>
+            <p class="mt-2 text-sm text-gray-700 leading-relaxed">{p.brief}</p>
+          </div>
+        </article>
+      ))}
+    </section>
+  </main>
+
+  <script type="application/ld+json" is:inline>
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "大和米蕈合作机构",
+      "headline": "大和米蕈合作机构",
+      "description": "Biobran® 全球合作机构与研究伙伴一览。",
+      "inLanguage": "zh-CN",
+      "url": "https://www.daiwa-pharm.com.cn/about/%E5%A4%A7%E5%92%8C%E7%B1%B3%E8%95%88%E5%90%88%E4%BD%9C%E6%9C%BA%E6%9E%84/",
+      "image": "https://www.daiwa-pharm.com.cn/images/partners/cover.png",
+      "isPartOf": { "@type": "WebSite", "name": "Biobran®|大和米蕈®|Lentin Plus LY（中国官网）", "url": "https://www.daiwa-pharm.com.cn/" },
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {"@type":"Organization","name":"Cairo University"},
+          {"@type":"Organization","name":"Aichi Gakusen University"},
+          {"@type":"Organization","name":"Charles R. Drew University of Medicine and Science"},
+          {"@type":"Organization","name":"Chiba University"},
+          {"@type":"Organization","name":"Dokkyo Medical University"},
+          {"@type":"Organization","name":"Hirosaki University"},
+          {"@type":"Organization","name":"McMaster University"},
+          {"@type":"Organization","name":"Nagoya City University"},
+          {"@type":"Organization","name":"Nagoya University"},
+          {"@type":"Organization","name":"San Gerardo Hospital"},
+          {"@type":"Organization","name":"Slovak Academy of Sciences, Cancer Research Institute"},
+          {"@type":"Organization","name":"St George Hospital"},
+          {"@type":"Organization","name":"The 108 Military Central Hospital"},
+          {"@type":"Organization","name":"Tokyo University"},
+          {"@type":"Organization","name":"University of California at Los Angeles"},
+          {"@type":"Organization","name":"University of California, Irvine"},
+          {"@type":"Organization","name":"University of Mansoura"},
+          {"@type":"Organization","name":"University of Miami"},
+          {"@type":"Organization","name":"University of Pecs"},
+          {"@type":"Organization","name":"University of Tuebingen"}
+        ]
+      }
+    }
+  </script>
+
+  <style is:global>
+    :root { --brand-fallback: #0B5BA7; }
+    .text-brand { color: var(--brand, var(--brand-fallback)); }
+    @supports not (column-fill: balance) {
+      .columns-1, .columns-2, .columns-3 { column-gap: 1.5rem; }
+    }
+  </style>
+</BaseLayout>
