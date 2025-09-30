@@ -1,14 +1,119 @@
 ---
-import Layout from '~/layouts/BaseLayout.astro';
-import { path } from '~/lib/url';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const pageTitle = '大和米蕈（Biobran）';
+const pageDesc = '大和米蕈（MGN-3）是大和药品采用独家技术从米糠中研发的健康食品原料，已发表100篇以上研究论文。';
 ---
-<Layout title="大和米蕈 | Daiwa">
-  <section class="wrap" style="padding:28px 0;">
-    <h1>大和米蕈（Biobran / MGN-3）</h1>
-    <p>以米糠衍生阿拉伯木聚糖复合体为核心的免疫营养产品，相关研究覆盖 NK/T/B 细胞功能等方向。</p>
-    <ul>
-      <li><a href={path('/biobran/medical/papers/')}>临床文献库</a></li>
-      <li><a href={path('/biobran/medical/experts/')}>专家与会议</a></li>
-    </ul>
-  </section>
-</Layout>
+
+<BaseLayout title={`${pageTitle} |Biobran®|大和米蕈®|Lentin Plus LY（中国官网）`} description={pageDesc}>
+  <main class="mx-auto max-w-3xl md:max-w-5xl px-4 md:px-6 py-8 md:py-12">
+    <!-- 顶部标题与简介 -->
+    <header class="mb-6 md:mb-8">
+      <nav class="text-sm text-gray-500 mb-2" aria-label="breadcrumbs">
+        <ol class="flex items-center gap-2">
+          <li><a href="/" class="hover:underline">首页</a></li>
+          <li aria-hidden="true">/</li>
+          <li class="text-gray-700">Biobran</li>
+        </ol>
+      </nav>
+      <h1 class="text-3xl md:text-4xl font-bold text-brand">大和米蕈（Biobran）</h1>
+      <p class="mt-2 text-gray-600">
+        大和米蕈（修饰米糠阿拉伯木聚糖，简称 MGN-3）是大和药品运用独家技术研发的、源自米糠的健康食品原料。
+        关于大和米蕈，目前已有 100 篇以上的研究论文发表。
+      </p>
+    </header>
+
+    <!-- 视频 -->
+    <section class="mb-8 md:mb-10">
+      <div class="rounded-2xl overflow-hidden bg-black">
+        <video
+          src="/videos/BIOBRAN.mp4"
+          controls
+          preload="metadata"
+          class="w-full h-auto aspect-video"
+          poster="/images/biobran_LENTIN-PLUS-LY-1000_01.png"
+        >
+          您的浏览器不支持视频播放。您可以<a href="/videos/BIOBRAN.mp4">下载视频</a>观看。
+        </video>
+      </div>
+      <p class="text-xs text-gray-500 mt-2">如无法播放，请直接下载 <a class="underline" href="/videos/BIOBRAN.mp4">BIOBRAN.mp4</a>。</p>
+    </section>
+
+    <!-- 三张产品图 -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
+      <img src="/images/biobran_LENTIN-PLUS-LY-1000_01.png" alt="Biobran 包装图 1" loading="lazy" width="800" height="800" class="rounded-xl shadow" />
+      <img src="/images/biobran_LENTIN-PLUS-LY-1000_02.png" alt="Biobran 包装图 2" loading="lazy" width="800" height="800" class="rounded-xl shadow" />
+      <img src="/images/biobran_LENTIN-PLUS-LY-1000_03.png" alt="Biobran 包装图 3" loading="lazy" width="800" height="800" class="rounded-xl shadow" />
+    </section>
+
+    <!-- 正文内容 -->
+    <article class="prose prose-neutral max-w-none">
+      <h2>研发背景</h2>
+      <p>
+        我们的身体中存在一套名为“免疫系统”的机制，负责清除病原微生物、病毒、癌细胞等外来异物（非自身物质）。当这套免疫系统因年龄增长或不良生活习惯而失衡时，就会导致免疫力下降。免疫力下降会增加感染症、恶性肿瘤等疾病的发病风险，还可能成为疾病进一步恶化的诱因。此外，反之若免疫力过度亢进，则可能引发花粉症、特应性皮炎（湿疹）及慢性炎症等问题。
+      </p>
+      <p>
+        大和药品关注到“米糠”这一长期以来与日本人饮食生活紧密相关的原料，采用独特的生产方法——通过与香菇菌丝体培养产生的酶发生反应，成功研发出独家原料“大和米蕈（Biobran）”。
+      </p>
+
+      <h2>大和米蕈（Biobran）的独特之处</h2>
+      <p>
+        米糠有益健康的说法由来已久。大和药品通过独家发酵技术，利用从香菇菌株（DAIWA-A95菌）培养液中提取的酶分解米糠，最终研发出修饰米糠阿拉伯木聚糖——大和米蕈（Biobran），进一步提升了米糠的效用。
+      </p>
+
+      <h2>大和米蕈（Biobran）的实力</h2>
+      <h3>科学依据积累</h3>
+      <p>
+        自 1996 年上市以来，大和药品始终与国内外研究机构合作，持续开展不间断的研究活动。截至目前，相关论文报告已超过 100 篇，学术会议发表次数逾 140 次，且数量仍在不断增加。
+      </p>
+      <h3>获全球认可的卓越业绩</h3>
+      <p>
+        截至目前，大和米蕈（Biobran）的销售足迹已覆盖全球 50 多个国家和地区，主要集中在亚洲、美洲及欧洲。未来，还计划进一步拓展至中东、非洲等地区的国家。
+      </p>
+      <h3>30年以上的销售历程</h3>
+      <p>
+        长期以来，大和米蕈（Biobran）受到以日本为起点的全球众多消费者的喜爱与信赖，积累了深厚的市场基础。由于是每日食用的产品，我们始终将安心与安全放在首位。
+      </p>
+
+      <h2>米糠与日本人</h2>
+      <p>
+        长期以来，米糠在日本的健康维护中被广泛应用：既作为食材，用于制作糠渍（米糠腌菜）、米油等；也作为沐浴用品，如装入糠袋用于美白、护肤。随着饮食与生活方式逐渐西化，米糠在日常生活中的使用频率曾一度降低。但近年来，凭借人们对健康的重视以及日本饮食文化的流行，米糠再次受到关注。
+      </p>
+
+      <h2>关于免疫</h2>
+      <p>
+        我们的身体受到免疫系统的保护。正如“免疫”二字所蕴含的“免除疫病”之意，免疫系统是身体为抵御感染症、癌症等疾病而具备的机制。在免疫系统中发挥作用的是各类免疫细胞，它们通过复杂的相互沟通协作，共同应对病原菌、癌细胞等有害物质。
+      </p>
+      <p>
+        当免疫功能因过度压力、疲劳、年龄增长等因素减弱时，人体就容易患病，因此避免免疫功能下降至关重要。另一方面，已知免疫功能若过度增强，反而可能攻击自身组织，或引发过敏性疾病。由此可见，将免疫系统调节并维持在“不过强、不过弱”的适度平衡状态，对我们的健康而言极为重要。
+      </p>
+    </article>
+
+    <!-- CTA -->
+    <div class="mt-10">
+      <a
+        href="/biobran/medical/"
+        class="inline-flex items-center justify-center rounded-xl bg-brand text-white px-5 py-3 font-medium hover:opacity-90 active:opacity-100 transition"
+      >
+        查看面向医疗保健专业人员的产品页面
+      </a>
+      <p class="text-xs text-gray-500 mt-2">本链接指向 /biobran/medical/</p>
+    </div>
+  </main>
+
+  <!-- 结构化数据（基础 WebPage） -->
+  <script type="application/ld+json" is:inline>
+    { 
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "大和米蕈（Biobran）",
+      "description": "大和米蕈（MGN-3）是大和药品采用独家技术从米糠中研发的健康食品原料，已发表100篇以上研究论文。",
+      "url": "https://www.daiwa-pharm.com.cn/videos/biobran/",
+      "image": [
+        "https://www.daiwa-pharm.com.cn/images/biobran_LENTIN-PLUS-LY-1000_01.png",
+        "https://www.daiwa-pharm.com.cn/images/biobran_LENTIN-PLUS-LY-1000_02.png",
+        "https://www.daiwa-pharm.com.cn/images/biobran_LENTIN-PLUS-LY-1000_03.png"
+      ]
+    }
+  </script>
+</BaseLayout>
