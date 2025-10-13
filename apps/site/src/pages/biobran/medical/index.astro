@@ -1,0 +1,227 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const pageTitle = '面向医疗保健专业人员 | 大和米蕈（BioBran®/MGN-3）';
+const pageDesc = '为专业人士提供：大和米蕈（BioBran®，研发代号 MGN-3）的作用、安全性、机理、制造方法与建议摄入量等信息。';
+---
+
+<BaseLayout title={`${pageTitle} | Biobran®|大和米蕈®|Lentin Plus LY（中国官网）`} description={pageDesc}>
+  <main class="mx-auto max-w-3xl md:max-w-6xl px-4 md:px-6 py-8 md:py-12">
+    <!-- 面包屑 -->
+    <nav class="text-sm text-gray-500 mb-4" aria-label="breadcrumbs">
+      <ol class="flex items-center gap-2">
+        <li><a href="/" class="hover:underline">首页</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="/biobran/" class="hover:underline">Biobran</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="text-gray-700">面向医疗保健专业人员</li>
+      </ol>
+    </nav>
+
+    <!-- 标题 -->
+    <header class="mb-6 md:mb-8">
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-brand">大和米蕈（BioBran® / MGN-3）作用与安全性</h1>
+      <p class="mt-2 text-gray-600">本页内容面向研究者、开发者、医生、药剂师等专业人士。涉及商品名称时以 <strong>Lentin Plus 1000 LY</strong> 表示。</p>
+    </header>
+
+    <!-- 提要 -->
+    <section class="rounded-2xl border border-amber-300 bg-amber-50 p-5 md:p-6 mb-8">
+      <h2 class="text-xl font-semibold text-amber-700 mb-2">概览</h2>
+      <p class="text-amber-900 leading-relaxed">
+        大和米蕈（BioBran®，研发代号 MGN-3）具有免疫调节（免疫增强与抗炎）等作用。已有大量论文与病例/研究报告发表。
+        其原料源自米糠，自研发初期即将安全性置于首位，多项试验与长期食用经验均支持其安全性。
+      </p>
+    </section>
+
+    <!-- 折叠块：作用与证据 -->
+    <details open class="group mb-8">
+      <summary class="cursor-pointer select-none list-none">
+        <div class="flex items-center justify-between rounded-xl bg-amber-400/90 px-4 py-3">
+          <h2 class="text-white font-semibold">大和米蕈的作用与科学证据</h2>
+          <span class="text-white text-sm opacity-90 group-open:rotate-180 transition-transform">▾</span>
+        </div>
+      </summary>
+      <div class="rounded-b-xl border-x border-b border-amber-200 p-4 md:p-6 space-y-6 bg-white">
+        <section>
+          <h3 class="text-lg font-semibold text-brand">免疫活化作用</h3>
+          <ul class="list-disc pl-6 space-y-2 text-gray-800 leading-relaxed">
+            <li><strong>NK 细胞活化</strong>：提升初始防御系统，加速清除异物。（相关研究：摄取量与人类 NK 活性、肿瘤患者 NK 活性）</li>
+            <li><strong>T / B 细胞活化</strong>：促进细胞毒性 T 细胞（CTL）及抗体产生，提高抗感染与抗肿瘤能力。（相关研究：淋巴细胞幼若化、调节性 T 细胞抑制）</li>
+            <li><strong>巨噬细胞活化</strong>：吞噬并清除病原体与异物，净化血液。</li>
+            <li><strong>树突细胞分化促进</strong>：在免疫联络中发挥“指挥官”作用，促进 CD8⁺ T 细胞增殖。（相关研究：DC 分化、经 DC 介导的 CD8⁺T 细胞增殖）</li>
+            <li><strong>其他观察到的作用</strong>：对过敏性肠综合征（IBS）症状与阿尔茨海默病模型表现出保护/改善趋势。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-lg font-semibold text-brand">抗炎作用</h3>
+          <ul class="list-disc pl-6 space-y-2 text-gray-800 leading-relaxed">
+            <li>在炎症状态下降低 ALT、AST 等肝功能指标，改善肝功能。</li>
+            <li>在糖尿病模型中抑制谷胱甘肽与抗氧化酶（GPx、SOD）下降，表现出神经/认知功能保护。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3 class="text-lg font-semibold text-brand">与标准治疗的联合</h3>
+          <ul class="list-disc pl-6 space-y-2 text-gray-800 leading-relaxed">
+            <li><strong>支持化疗/放疗</strong>：与化疗协同，提高肿瘤细胞对药物的敏感性；与放疗并用时促进肿瘤细胞凋亡，增强疗效。</li>
+            <li><strong>改善生活质量（QOL）</strong>：与放化疗并用时，有助于减轻“疼痛/乏力/恶心”等不适，提高 QOL。（相关研究：延命与 QOL 改善、头颈部癌疗效）</li>
+          </ul>
+        </section>
+      </div>
+    </details>
+
+    <!-- 折叠块：作用机理 -->
+    <details class="group mb-8">
+      <summary class="cursor-pointer select-none list-none">
+        <div class="flex items-center justify-between rounded-xl bg-amber-400/90 px-4 py-3">
+          <h2 class="text-white font-semibold">作用机理</h2>
+          <span class="text-white text-sm opacity-90 group-open:rotate-180 transition-transform">▾</span>
+        </div>
+      </summary>
+      <div class="rounded-b-xl border-x border-b border-amber-200 p-4 md:p-6 bg-white space-y-4 leading-relaxed">
+        <p>
+          大和米蕈富含多糖类。不同于被完全消化吸收的淀粉与难以吸收的膳食纤维，部分活性组分可在不被完全消化的情况下进入血液，
+          或通过回肠派尔集合淋巴小结（Peyer’s patches）进行免疫刺激，从而激活 NK、T、B 细胞及巨噬细胞、树突细胞等，
+          体现免疫调节（免疫活化、抗炎、抗过敏、抗氧化等）作用。
+        </p>
+        <figure class="rounded-xl overflow-hidden border border-gray-200">
+          <img src="/images/biobran_mechanism.png" alt="大和米蕈（BioBran®/MGN-3）作用机理示意" loading="lazy" width="1200" height="650" class="w-full h-auto object-cover" />
+          <figcaption class="text-xs text-gray-500 p-2">示意图仅供专业阅读参考。</figcaption>
+        </figure>
+      </div>
+    </details>
+
+    <!-- 折叠块：制造方法 -->
+    <details class="group mb-8">
+      <summary class="cursor-pointer select-none list-none">
+        <div class="flex items-center justify-between rounded-xl bg-amber-400/90 px-4 py-3">
+          <h2 class="text-white font-semibold">制造方法</h2>
+          <span class="text-white text-sm opacity-90 group-open:rotate-180 transition-transform">▾</span>
+        </div>
+      </summary>
+      <div class="rounded-b-xl border-x border-b border-amber-200 p-4 md:p-6 bg-white space-y-4 leading-relaxed">
+        <p>
+          以<strong>米糠半纤维素 B</strong>为原料，采用香菇菌丝体培养液中的碳水化物分解酶进行<strong>部分水解</strong>的独家工艺，
+          获得具有免疫活化/调节作用的修饰米糠阿拉伯木聚糖——<strong>大和米蕈（BioBran®/MGN-3）</strong>。
+        </p>
+      </div>
+    </details>
+
+    <!-- 折叠块：规格与安全性 -->
+    <details class="group mb-10">
+      <summary class="cursor-pointer select-none list-none">
+        <div class="flex items-center justify-between rounded-xl bg-amber-400/90 px-4 py-3">
+          <h2 class="text-white font-semibold">规格与安全性</h2>
+          <span class="text-white text-sm opacity-90 group-open:rotate-180 transition-transform">▾</span>
+        </div>
+      </summary>
+      <div class="rounded-b-xl border-x border-b border-amber-200 p-4 md:p-6 bg-white space-y-6 leading-relaxed">
+        <section>
+          <h3 class="text-lg font-semibold text-brand">建议摄入量</h3>
+          <p>基于动物与人体研究，建议 <strong>1–3 g/日</strong> 作为日常摄入量参考。</p>
+        </section>
+        <section>
+          <h3 class="text-lg font-semibold text-brand">安全性试验（摘要）</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm border border-gray-200 rounded-lg">
+              <thead class="bg-gray-50 text-gray-700">
+                <tr>
+                  <th class="px-3 py-2 text-left">试验种类</th>
+                  <th class="px-3 py-2 text-left">结果</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="px-3 py-2">致突变性（Ames 试验）</td>
+                  <td class="px-3 py-2">阴性</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">急性毒性（大鼠）</td>
+                  <td class="px-3 py-2">LD<sub>50</sub> &gt; 36 g/kg</td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2">反复给药毒性（比格犬）</td>
+                  <td class="px-3 py-2">NOAEL &gt; 200 mg/kg/日</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <section>
+          <h3 class="text-lg font-semibold text-brand">效果·基础试验（部分机构）</h3>
+          <p class="text-sm text-gray-700">
+            University of Miami、Charles R. Drew University of Medicine and Science、Tübingen University Hospital、University of Pécs、
+            东京大学、筑波大学、东京农工大学、名古屋大学、千叶大学、九州大学、滨松医科大学 等。
+          </p>
+        </section>
+      </div>
+    </details>
+
+    <!-- CTA -->
+    <section class="rounded-2xl border border-gray-200 p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-3">
+      <div class="text-sm text-gray-600 leading-relaxed">
+        商业化产品请参考 <strong>Lentin Plus 1000 LY</strong>（面向专业渠道）。欢迎联系以获取更多资料或合作。
+      </div>
+      <div class="md:ml-auto">
+        <a href="/contact/" class="inline-flex items-center rounded-xl bg-brand text-white px-4 py-2 hover:opacity-90">联系商务/学术合作</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- 使用注意事项弹窗 -->
+  <div id="pro-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative z-10 mx-auto mt-24 w-[92%] max-w-xl rounded-2xl bg-white shadow-xl overflow-hidden">
+      <div class="px-6 py-4 bg-amber-400/90 text-white font-semibold">使用注意事项</div>
+      <div class="px-6 py-5 text-gray-800 leading-relaxed">
+        以下内容是面向研究者、开发者、医生、药剂师等专业人士的信息。它不能替代通过向医疗从业者等咨询所获得的信息，请您谅解。
+      </div>
+      <div class="px-6 pb-6 flex gap-3 justify-end">
+        <a href="/biobran/" class="inline-flex items-center rounded-xl border border-gray-300 px-4 py-2 hover:bg-gray-50">返回</a>
+        <button id="pro-accept" class="inline-flex items-center rounded-xl bg-brand text-white px-4 py-2 hover:opacity-90">确认并继续</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 行为脚本 -->
+  <script is:inline>
+    try {
+      const key = 'biobran_medical_ack';
+      const modal = document.getElementById('pro-modal');
+      const btn = document.getElementById('pro-accept');
+      const acknowledged = typeof window !== 'undefined' && window.sessionStorage.getItem(key) === '1';
+      if (!acknowledged) {
+        modal?.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+      btn?.addEventListener('click', () => {
+        try { window.sessionStorage.setItem(key, '1'); } catch (e) {}
+        modal?.classList.add('hidden');
+        document.body.style.overflow = '';
+      });
+    } catch (e) {}
+  </script>
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" is:inline>
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "面向医疗保健专业人员 | 大和米蕈（BioBran®/MGN-3）",
+      "headline": "大和米蕈（BioBran®/MGN-3）作用与安全性",
+      "description": "为专业人士提供：大和米蕈（BioBran®/MGN-3）的作用、安全性、机理、制造方法与建议摄入量等信息。",
+      "inLanguage": "zh-CN",
+      "url": "https://www.daiwa-pharm.com.cn/BioBran/medical/",
+      "image": "https://www.daiwa-pharm.com.cn/images/biobran_mechanism.png",
+      "isPartOf": { "@type": "WebSite", "name": "Biobran®|大和米蕈®|Lentin Plus LY（中国官网）", "url": "https://www.daiwa-pharm.com.cn/" }
+    }
+  </script>
+
+  <!-- 局部样式：参考日本站色块风格 -->
+  <style is:global>
+    :root { --brand-fallback: #0B5BA7; }
+    .text-brand { color: var(--brand, var(--brand-fallback)); }
+    details > summary::-webkit-details-marker { display: none; }
+  </style>
+</BaseLayout>
