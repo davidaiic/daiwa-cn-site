@@ -1,0 +1,161 @@
+---
+// apps/site/src/pages/biobran/expert/index.astro
+import Base from '@/layouts/BaseLayout.astro';
+import dataset from '@/data/expert.json';
+
+const papers = dataset.papers;
+const presentations = dataset.presentations;
+
+// only years that have items per tab
+const yearsP = Array.from(new Set(papers.map(x => x.year))).sort((a,b)=>b-a);
+const yearsR = Array.from(new Set(presentations.map(x => x.year))).sort((a,b)=>b-a);
+
+const CURRENT_TITLE = '大和米蕈 BioBran® · 学术文献与学会发表';
+const CURRENT_DESC = '汇总 BioBran®（MGN-3，大和米蕈）相关的论文与学会发表。中文为主，原文（日/英）次要显示。按年份分页加载，含 JSON-LD。';
+
+// Build JSON-LD on the server
+const toLd = (it, type) => ({
+  "@context": "https://schema.org",
+  "@type": type === 'paper' ? "ScholarlyArticle" : "PresentationDigitalDocument",
+  "name": (it.title_zh && it.title_zh.trim()) ? it.title_zh : it.title_orig,
+  "alternateName": it.title_orig,
+  "inLanguage": it.lang_orig === 'ja' ? "ja" : "en",
+  "isPartOf": it.journal_zh || it.journal_orig || undefined,
+  "identifier": it.doi || undefined,
+  "url": it.url || undefined
+});
+
+const allLd = [
+  ...papers.map(p => toLd(p, 'paper')),
+  ...presentations.map(p => toLd(p, 'presentation'))
+];
+---
+<Base title={`{CURRENT_TITLE}`} description={CURRENT_DESC}>
+  <section class="mx-auto max-w-5xl px-4 md:px-6 py-10">
+    <h1 class="text-2xl md:text-3xl font-semibold text-brand mb-6">学术文献 · 大和米蕈（BioBran®/MGN-3）</h1>
+
+    <div class="grid grid-cols-[1fr_auto] gap-2 items-center mb-6">
+      <div class="grid grid-cols-2 gap-3">
+        <button id="tab-papers" class="tab active">论文</button>
+        <button id="tab-pres" class="tab">学会发表</button>
+      </div>
+      <button id="jumpDown" class="tip-down" aria-label="向下查看">
+        <svg viewBox="0 0 20 20" class="w-5 h-5"><path d="M5 7l5 6 5-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div id="list-papers" class="space-y-8">
+      {yearsP.map((y) => {
+        const list = papers.filter(p=>p.year===y);
+        if (list.length===0) return null;
+        return (
+          <div class="year-block" data-year={y} data-kind="papers">
+            <div class="year-col">{y}</div>
+            <div class="items-col space-y-4">
+              {list.map((it) => (
+                <article class="item">
+                  <h3 class="title">
+                    {it.title_zh?.trim() ? it.title_zh : `${it.title_orig}（原文）`}
+                  </h3>
+                  <p class="meta">
+                    {(it.authors_zh||it.journal_zh) ? `${it.authors_zh||''}${it.journal_zh?` · ${it.journal_zh}`:''}` : (it.authors_orig||it.journal_orig)}
+                    {it.doi ? ` · DOI: ${it.doi}` : ''} {it.url ? <a href={it.url} target="_blank" rel="noopener" class="a">链接</a> : null}
+                  </p>
+                  {it.title_zh?.trim() ? (
+                    <p class="orig" lang={it.lang_orig}>
+                      {it.title_orig} {it.journal_orig ? ` · ${it.journal_orig}` : ''}
+                    </p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    <div id="list-pres" class="hidden space-y-8">
+      {yearsR.map((y) => {
+        const list = presentations.filter(p=>p.year===y);
+        if (list.length===0) return null;
+        return (
+          <div class="year-block" data-year={y} data-kind="presentations">
+            <div class="year-col">{y}</div>
+            <div class="items-col space-y-4">
+              {list.map((it) => (
+                <article class="item">
+                  <h3 class="title">
+                    {it.title_zh?.trim() ? it.title_zh : `${it.title_orig}（原文）`}
+                  </h3>
+                  <p class="meta">
+                    {(it.authors_zh||it.journal_zh) ? `${it.authors_zh||''}${it.journal_zh?` · ${it.journal_zh}`:''}` : (it.authors_orig||it.journal_orig)}
+                    {it.doi ? ` · DOI: ${it.doi}` : ''} {it.url ? <a href={it.url} target="_blank" rel="noopener" class="a">链接</a> : null}
+                  </p>
+                  {it.title_zh?.trim() ? (
+                    <p class="orig" lang={it.lang_orig}>
+                      {it.title_orig} {it.journal_orig ? ` · ${it.journal_orig}` : ''}
+                    </p>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+
+    <div class="flex items-center justify-center mt-8">
+      <button id="loadMore" class="px-4 py-2 rounded-full bg-brand text-white">加载更早年份</button>
+    </div>
+  </section>
+
+  <script is:inline>
+    const tabP = document.getElementById('tab-papers');
+    const tabR = document.getElementById('tab-pres');
+    const listP = document.getElementById('list-papers');
+    const listR = document.getElementById('list-pres');
+    const jump = document.getElementById('jumpDown');
+    function act(which){
+      if (which==='p'){ tabP.classList.add('active'); tabR.classList.remove('active'); listP.classList.remove('hidden'); listR.classList.add('hidden'); }
+      else { tabR.classList.add('active'); tabP.classList.remove('active'); listR.classList.remove('hidden'); listP.classList.add('hidden'); }
+      revealed = 0; revealMore();
+    }
+    tabP?.addEventListener('click', ()=>act('p'));
+    tabR?.addEventListener('click', ()=>act('r'));
+    jump?.addEventListener('click', ()=>{
+      const target = !listP.classList.contains('hidden') ? listP : listR;
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    // progressive reveal per tab
+    let revealed = 0;
+    const per = 3; // years each click
+    function revealMore(){
+      const visibleTab = !listP.classList.contains('hidden') ? 'papers' : 'presentations';
+      const blocks = Array.from(document.querySelectorAll('.year-block')).filter(b => b.dataset.kind === visibleTab);
+      blocks.forEach((b, idx) => {
+        if (idx < revealed + per) b.classList.remove('hidden'); else b.classList.add('hidden');
+      });
+      revealed += per;
+      const btn = document.getElementById('loadMore');
+      if (revealed >= blocks.length) btn?.classList.add('hidden'); else btn?.classList.remove('hidden');
+    }
+    document.getElementById('loadMore')?.addEventListener('click', revealMore);
+    revealMore();
+  </script>
+
+  <script type="application/ld+json" is:inline>{JSON.stringify(allLd)}</script>
+
+  <style is:global>
+    .tab{ @apply w-full text-center py-3 rounded bg-gray-100 text-gray-700; }
+    .tab.active{ @apply bg-brand text-white; }
+    .tip-down{ @apply w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200; }
+    .year-block{ @apply grid grid-cols-[84px_1fr] gap-4 items-start; }
+    .year-col{ @apply text-brand font-semibold text-lg md:text-xl bg-yellow-100 px-3 py-2 rounded text-center; }
+    .item{ @apply pb-4 border-b border-gray-200; } /* 分隔线 */
+    .item .title{ @apply text-base md:text-lg font-medium leading-snug; }
+    .item .meta{ @apply text-sm text-gray-700 mt-1; }
+    .item .orig{ @apply text-xs text-gray-500 mt-1; }
+    .a{ @apply underline hover:opacity-80; }
+  </style>
+</Base>

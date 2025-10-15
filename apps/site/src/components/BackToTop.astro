@@ -1,0 +1,87 @@
+---
+// apps/site/src/components/BackToTop.astro
+// Back to Top (fade in/out + smooth scroll), centered icon & configurable sizes.
+
+interface Props {
+  threshold?: number;   // px to trigger show
+  right?: string;       // CSS length
+  bottom?: string;      // CSS length
+  label?: string;
+  class?: string;
+  diameter?: number;    // button diameter in px (default 56)
+  iconSize?: number;    // arrow icon size in px (default 28)
+  bg?: string;          // override background color (e.g., '#003876')
+}
+const {
+  threshold = 240,
+  right = '1.25rem',
+  bottom = '1.25rem',
+  label = '回到顶部',
+  class: className = '',
+  diameter = 56,
+  iconSize = 28,
+  bg
+} = Astro.props;
+
+const bgColor = bg ?? 'var(--brand, #003876)';
+---
+
+<button id="backToTopBtn"
+  aria-label={label}
+  title="TOP"
+  class={`fixed z-[9999] rounded-full shadow-lg text-white transition-opacity duration-300 opacity-0 pointer-events-none ${className}`}
+  style={`right:${right}; bottom:${bottom}; width:${diameter}px; height:${diameter}px; background-color:${bgColor}; display:flex; align-items:center; justify-content:center;`}
+>
+  <svg viewBox="0 0 24 24" width={iconSize} height={iconSize} aria-hidden="true">
+    <!-- Upward arrow, optically centered -->
+    <path d="M12 4l-7 7h4v9h6v-9h4l-7-7z" fill="currentColor"></path>
+  </svg>
+</button>
+
+<style>
+  #backToTopBtn:hover { filter: brightness(1.05); }
+  :root { --brand: #003876; }
+</style>
+
+<script is:inline define:vars={{ threshold }}>
+  (function(){
+    const btn = document.getElementById('backToTopBtn');
+    const th = Number(threshold);
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const show = () => { btn.classList.remove('opacity-0','pointer-events-none'); };
+    const hide = () => { btn.classList.add('opacity-0','pointer-events-none'); };
+
+    // Scroll threshold logic
+    let ticking = false;
+    function onScroll(){
+      if(!ticking){
+        window.requestAnimationFrame(()=>{
+          (window.scrollY > th) ? show() : hide();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    document.addEventListener('DOMContentLoaded', onScroll);
+    onScroll(); // initial
+
+    // IntersectionObserver sentinel at very top (extra robust)
+    try {
+      const sentinel = document.createElement('div');
+      sentinel.setAttribute('aria-hidden','true');
+      sentinel.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:1px;';
+      document.body.prepend(sentinel);
+      const io = new IntersectionObserver(([e]) => { e.isIntersecting ? hide() : show(); });
+      io.observe(sentinel);
+    } catch(e) {}
+
+    btn.addEventListener('click', () => {
+      try {
+        window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' });
+      } catch (e) { window.scrollTo(0, 0); }
+    });
+  })();
+</script>

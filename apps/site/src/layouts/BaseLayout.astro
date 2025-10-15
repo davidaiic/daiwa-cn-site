@@ -2,6 +2,7 @@
 // apps/site/src/layouts/BaseLayout.astro
 import SiteHeader from '~/components/SiteHeader.astro';
 import SiteFooter from '~/components/SiteFooter.astro';
+import BackToTop from '~/components/BackToTop.astro';
 import { BASE } from '~/lib/url';
 
 interface Props { title?: string; description?: string; }
@@ -21,6 +22,7 @@ const { title = 'Daiwa CN', description = '' } = Astro.props;
 <body>
   <SiteHeader />
   <main><slot /></main>
+  <BackToTop threshold={240} right="1.25rem" bottom="1.25rem" />
   <SiteFooter />
 </body>
 </html>
