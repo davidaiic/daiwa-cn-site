@@ -3,48 +3,82 @@
 import Base from '@/layouts/BaseLayout.astro';
 import dataset from '@/data/expert.json';
 
-const papers = dataset.papers;
-const presentations = dataset.presentations;
+const papers = (dataset.papers ?? []).filter(Boolean);
+const presentations = (dataset.presentations ?? []).filter(Boolean);
 
-// only years that have items per tab
-const yearsP = Array.from(new Set(papers.map(x => x.year))).sort((a,b)=>b-a);
-const yearsR = Array.from(new Set(presentations.map(x => x.year))).sort((a,b)=>b-a);
+const yearsP = Array.from(new Set(papers.map(x => x.year).filter(Boolean))).sort((a,b)=>b-a);
+const yearsR = Array.from(new Set(presentations.map(x => x.year).filter(Boolean))).sort((a,b)=>b-a);
 
-const CURRENT_TITLE = '大和米蕈 BioBran® · 学术文献与学会发表';
-const CURRENT_DESC = '汇总 BioBran®（MGN-3，大和米蕈）相关的论文与学会发表。中文为主，原文（日/英）次要显示。按年份分页加载，含 JSON-LD。';
+function collectTags(list){
+  const freq = new Map();
+  for (const it of list){
+    const arr = (it.tags ?? []).filter(Boolean);
+    for (const t of arr){
+      const key = String(t).trim();
+      if(!key) continue;
+      freq.set(key, (freq.get(key) ?? 0) + 1);
+    }
+  }
+  return Array.from(freq.entries()).sort((a,b)=>{
+    if (b[1] !== a[1]) return b[1]-a[1];
+    return a[0].localeCompare(b[0], 'zh-Hans');
+  }).map(([k])=>k);
+}
+const allTagsP = collectTags(papers);
+const allTagsR = collectTags(presentations);
 
-// Build JSON-LD on the server
 const toLd = (it, type) => ({
   "@context": "https://schema.org",
   "@type": type === 'paper' ? "ScholarlyArticle" : "PresentationDigitalDocument",
-  "name": (it.title_zh && it.title_zh.trim()) ? it.title_zh : it.title_orig,
+  "name": (it.title_zh && it.title_zh.trim()) ? it.title_zh.replace(/（翻译）$/,'') : it.title_orig,
   "alternateName": it.title_orig,
   "inLanguage": it.lang_orig === 'ja' ? "ja" : "en",
-  "isPartOf": it.journal_zh || it.journal_orig || undefined,
+  "isPartOf": (it.journal_zh && it.journal_zh.trim()) ? it.journal_zh : it.journal_orig,
   "identifier": it.doi || undefined,
   "url": it.url || undefined
 });
-
 const allLd = [
   ...papers.map(p => toLd(p, 'paper')),
   ...presentations.map(p => toLd(p, 'presentation'))
 ];
+
+const TITLE = '学术文献 · 大和米蕈（BioBran®/MGN-3）';
+const DESC  = '大和米蕈（BioBran®/MGN-3）相关的论文与学会发表（中文主标题 + 原文次显）。支持按“主题标签”多选筛选。';
 ---
-<Base title={`${CURRENT_TITLE} | Biobran®|大和米蕈®|Lentin Plus LY（中国官网）`} description={CURRENT_DESC}>
-  <section class="mx-auto max-w-5xl px-4 md:px-6 py-10">
+
+<Base title={TITLE} description={DESC}>
+  <section class="mx-auto max-w-5xl px-4 md:px-6 py-8 md:py-10">
     <h1 class="text-2xl md:text-3xl font-semibold text-brand mb-6">学术文献 · 大和米蕈（BioBran®/MGN-3）</h1>
 
-    <div class="grid grid-cols-[1fr_auto] gap-2 items-center mb-6">
+    <div class="grid grid-cols-[1fr_auto] gap-2 items-center mb-4">
       <div class="grid grid-cols-2 gap-3">
-        <button id="tab-papers" class="tab active">论文</button>
-        <button id="tab-pres" class="tab">学会发表</button>
+        <button id="tab-papers" class="tab active">论文 <span class="arrow">▾</span></button>
+        <button id="tab-pres" class="tab">学会发表 <span class="arrow">▾</span></button>
       </div>
       <button id="jumpDown" class="tip-down" aria-label="向下查看">
         <svg viewBox="0 0 20 20" class="w-5 h-5"><path d="M5 7l5 6 5-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
       </button>
     </div>
 
-    <div id="list-papers" class="space-y-8">
+    <div class="filter-card rounded-2xl border border-gray-200 p-3 md:p-4 mb-6">
+      <div class="flex items-center justify-between gap-3">
+        <div class="font-medium">按主题筛选</div>
+        <div class="text-sm text-gray-600">多选为“且(AND)”关系</div>
+      </div>
+      <!-- chips container use flex-wrap so chips fit content width and wrap horizontally -->
+      <div class="mt-3 chips" id="chips-p">
+        {allTagsP.map(t => <button class="chip" data-tag={t} title={t}>{t}</button>)}
+      </div>
+      <div class="mt-3 chips hidden" id="chips-r">
+        {allTagsR.map(t => <button class="chip" data-tag={t} title={t}>{t}</button>)}
+      </div>
+      <div class="flex items-center gap-2 mt-3">
+        <button id="clearTags" class="btn-secondary">清空</button>
+        <div class="text-sm text-gray-600"><span id="resultCount">0</span> 条结果</div>
+      </div>
+    </div>
+
+    <div id="list-papers">
       {yearsP.map((y) => {
         const list = papers.filter(p=>p.year===y);
         if (list.length===0) return null;
@@ -53,19 +87,13 @@ const allLd = [
             <div class="year-col">{y}</div>
             <div class="items-col space-y-4">
               {list.map((it) => (
-                <article class="item">
-                  <h3 class="title">
-                    {it.title_zh?.trim() ? it.title_zh : `${it.title_orig}（原文）`}
-                  </h3>
+                <article class="item" data-tags={(it.tags || []).join('|')}>
+                  <h3 class="title">{it.title_zh?.trim() || it.title_orig}</h3>
                   <p class="meta">
-                    {(it.authors_zh||it.journal_zh) ? `${it.authors_zh||''}${it.journal_zh?` · ${it.journal_zh}`:''}` : (it.authors_orig||it.journal_orig)}
+                    {it.journal_zh?.trim() || it.journal_orig}
                     {it.doi ? ` · DOI: ${it.doi}` : ''} {it.url ? <a href={it.url} target="_blank" rel="noopener" class="a">链接</a> : null}
                   </p>
-                  {it.title_zh?.trim() ? (
-                    <p class="orig" lang={it.lang_orig}>
-                      {it.title_orig} {it.journal_orig ? ` · ${it.journal_orig}` : ''}
-                    </p>
-                  ) : null}
+                  {(it.title_orig && it.title_orig.trim()) ? <p class="orig" lang={it.lang_orig}>{it.title_orig} {it.journal_orig ? ` · ${it.journal_orig}` : ''}</p> : null}
                 </article>
               ))}
             </div>
@@ -74,7 +102,7 @@ const allLd = [
       })}
     </div>
 
-    <div id="list-pres" class="hidden space-y-8">
+    <div id="list-pres" class="hidden">
       {yearsR.map((y) => {
         const list = presentations.filter(p=>p.year===y);
         if (list.length===0) return null;
@@ -83,19 +111,13 @@ const allLd = [
             <div class="year-col">{y}</div>
             <div class="items-col space-y-4">
               {list.map((it) => (
-                <article class="item">
-                  <h3 class="title">
-                    {it.title_zh?.trim() ? it.title_zh : `${it.title_orig}（原文）`}
-                  </h3>
+                <article class="item" data-tags={(it.tags || []).join('|')}>
+                  <h3 class="title">{it.title_zh?.trim() || it.title_orig}</h3>
                   <p class="meta">
-                    {(it.authors_zh||it.journal_zh) ? `${it.authors_zh||''}${it.journal_zh?` · ${it.journal_zh}`:''}` : (it.authors_orig||it.journal_orig)}
+                    {it.journal_zh?.trim() || it.journal_orig}
                     {it.doi ? ` · DOI: ${it.doi}` : ''} {it.url ? <a href={it.url} target="_blank" rel="noopener" class="a">链接</a> : null}
                   </p>
-                  {it.title_zh?.trim() ? (
-                    <p class="orig" lang={it.lang_orig}>
-                      {it.title_orig} {it.journal_orig ? ` · ${it.journal_orig}` : ''}
-                    </p>
-                  ) : null}
+                  {(it.title_orig && it.title_orig.trim()) ? <p class="orig" lang={it.lang_orig}>{it.title_orig} {it.journal_orig ? ` · ${it.journal_orig}` : ''}</p> : null}
                 </article>
               ))}
             </div>
@@ -105,7 +127,7 @@ const allLd = [
     </div>
 
     <div class="flex items-center justify-center mt-8">
-      <button id="loadMore" class="px-4 py-2 rounded-full bg-brand text-white">加载更早年份</button>
+      <button id="loadMore" class="btn-primary">加载更早年份</button>
     </div>
   </section>
 
@@ -114,48 +136,107 @@ const allLd = [
     const tabR = document.getElementById('tab-pres');
     const listP = document.getElementById('list-papers');
     const listR = document.getElementById('list-pres');
+    const chipsP = document.getElementById('chips-p');
+    const chipsR = document.getElementById('chips-r');
     const jump = document.getElementById('jumpDown');
+    const resCount = document.getElementById('resultCount');
+    const clearBtn = document.getElementById('clearTags');
+
+    const qs = (sel, root=document) => root.querySelector(sel);
+    const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
     function act(which){
-      if (which==='p'){ tabP.classList.add('active'); tabR.classList.remove('active'); listP.classList.remove('hidden'); listR.classList.add('hidden'); }
-      else { tabR.classList.add('active'); tabP.classList.remove('active'); listR.classList.remove('hidden'); listP.classList.add('hidden'); }
-      revealed = 0; revealMore();
+      const toP = which==='p';
+      tabP.classList.toggle('active', toP);
+      tabR.classList.toggle('active', !toP);
+      listP.classList.toggle('hidden', !toP);
+      listR.classList.toggle('hidden', toP);
+      chipsP.classList.toggle('hidden', !toP);
+      chipsR.classList.toggle('hidden', toP);
+      revealed = 0;
+      revealMore();
+      applyFilter();
     }
+
     tabP?.addEventListener('click', ()=>act('p'));
     tabR?.addEventListener('click', ()=>act('r'));
+
     jump?.addEventListener('click', ()=>{
       const target = !listP.classList.contains('hidden') ? listP : listR;
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    // progressive reveal per tab
     let revealed = 0;
-    const per = 3; // years each click
+    const per = 3;
     function revealMore(){
       const visibleTab = !listP.classList.contains('hidden') ? 'papers' : 'presentations';
-      const blocks = Array.from(document.querySelectorAll('.year-block')).filter(b => b.dataset.kind === visibleTab);
+      const blocks = qsa('.year-block').filter(b => b.dataset.kind === visibleTab);
       blocks.forEach((b, idx) => {
         if (idx < revealed + per) b.classList.remove('hidden'); else b.classList.add('hidden');
       });
-      revealed += per;
       const btn = document.getElementById('loadMore');
-      if (revealed >= blocks.length) btn?.classList.add('hidden'); else btn?.classList.remove('hidden');
+      if (revealed + per >= blocks.length) { btn?.classList.add('hidden'); } else { btn?.classList.remove('hidden'); }
     }
-    document.getElementById('loadMore')?.addEventListener('click', revealMore);
+    document.getElementById('loadMore')?.addEventListener('click', ()=>{ revealed += per; revealMore(); });
     revealMore();
+
+    const activeTags = new Set();
+    function getActiveChipRoot(){ return !chipsP.classList.contains('hidden') ? chipsP : chipsR; }
+    function currentArticles(){
+      const container = !listP.classList.contains('hidden') ? listP : listR;
+      return qsa('article.item', container);
+    }
+    function applyFilter(){
+      const tags = Array.from(activeTags);
+      let shown = 0;
+      for (const art of currentArticles()){
+        const str = (art.dataset.tags || '').toLowerCase();
+        const ok = tags.every(t => str.includes(t.toLowerCase()));
+        art.style.display = ok ? '' : 'none';
+        if(ok) shown++;
+      }
+      resCount.textContent = String(shown);
+    }
+    function onChipClick(e){
+      const btn = e.target.closest('button.chip'); if(!btn) return;
+      const tag = btn.dataset.tag; if(!tag) return;
+      if (btn.classList.contains('on')) { btn.classList.remove('on'); activeTags.delete(tag); }
+      else { btn.classList.add('on'); activeTags.add(tag); }
+      applyFilter();
+    }
+    chipsP?.addEventListener('click', onChipClick);
+    chipsR?.addEventListener('click', onChipClick);
+
+    clearBtn?.addEventListener('click', ()=>{
+      activeTags.clear();
+      qsa('button.chip.on', getActiveChipRoot()).forEach(b=>b.classList.remove('on'));
+      applyFilter();
+    });
+
+    applyFilter();
   </script>
 
   <script type="application/ld+json" is:inline>{JSON.stringify(allLd)}</script>
 
   <style is:global>
-    .tab{ @apply w-full text-center py-3 rounded bg-gray-100 text-gray-700; }
+    .tab{ @apply w-full text-center py-3 rounded bg-gray-100 text-gray-700 relative; }
     .tab.active{ @apply bg-brand text-white; }
+    .tab .arrow{ @apply ml-1 opacity-70; }
     .tip-down{ @apply w-9 h-9 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200; }
-    .year-block{ @apply grid grid-cols-[84px_1fr] gap-4 items-start; }
+    .year-block{ @apply grid grid-cols-[84px_1fr] gap-4 items-start mb-2; }
     .year-col{ @apply text-brand font-semibold text-lg md:text-xl bg-yellow-100 px-3 py-2 rounded text-center; }
-    .item{ @apply pb-4 border-b border-gray-200; } /* 分隔线 */
+    .item{ @apply pb-4 border-b border-gray-200; }
     .item .title{ @apply text-base md:text-lg font-medium leading-snug; }
     .item .meta{ @apply text-sm text-gray-700 mt-1; }
     .item .orig{ @apply text-xs text-gray-500 mt-1; }
     .a{ @apply underline hover:opacity-80; }
+
+    /* New: chips auto width & wrap */
+    .chips{ @apply flex flex-wrap gap-2; }
+    .filter-card .chip{ @apply inline-flex items-center px-3 py-1.5 rounded-full border border-gray-300 text-sm bg-white hover:bg-gray-50 whitespace-nowrap cursor-pointer; }
+    .filter-card .chip.on{ @apply bg-brand text-white border-brand; }
+
+    .btn-primary{ @apply px-4 py-2 rounded-full bg-brand text-white hover:opacity-90; }
+    .btn-secondary{ @apply px-3 py-1.5 rounded-full border border-gray-300 hover:bg-gray-50 text-sm; }
   </style>
 </Base>
