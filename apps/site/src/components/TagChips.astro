@@ -1,0 +1,25 @@
+---
+const { items=[], multiple=true, value=[], name='kw' } = Astro.props;
+---
+<div class="chip-wrap" data-name={name}>
+  {items.map((txt) => (
+    <button class={"chip" + (value.includes(txt)?' active':'')} data-v={txt}>{txt}</button>
+  ))}
+</div>
+<style>
+.chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:none;border-radius:999px;padding:6px 10px;background:#f3f4f6;color:#111827;font-size:14px;cursor:pointer}
+.chip.active{background:#0f2d5e;color:#fff}
+</style>
+<script>
+const root = document.currentScript.previousElementSibling;
+root.addEventListener('click', e=>{
+  const t = e.target.closest('button.chip'); if(!t) return;
+  t.classList.toggle('active');
+  root.dispatchEvent(new CustomEvent('chipchange', {
+    detail:{ name: root.dataset.name, value: [...root.querySelectorAll('.chip.active')].map(b=>b.dataset.v) },
+    bubbles: true,
+    composed: true
+  }));
+});
+</script>

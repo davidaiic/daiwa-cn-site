@@ -1,0 +1,40 @@
+---
+const { item } = Astro.props;
+---
+<article class="paper">
+  <h3 class="title">{item.title}</h3>
+  {item.title_en && <div class="en">{item.title_en}</div>}
+  <div class="meta">
+    <span class="journal">{item.journal}</span>
+    {item.year && <span class="dot">•</span>}
+    {item.year && <span>{item.year}</span>}
+    {item.doi && <span class="dot">•</span>}
+    {item.doi && <a href={"https://doi.org/"+item.doi.replace(/^https?:\/\/doi.org\//,'')} target="_blank" rel="noopener">DOI</a>}
+  </div>
+  {item.authors?.length ? <div class="authors">{item.authors.join(', ')}</div> : null}
+  {item.abstract && <p class="abs">{item.abstract}</p>}
+  <div class="tags">
+    {(item.keywords||[]).map(k => <span class="chip" data-kw={k}>{k}</span>)}
+  </div>
+  {(item.pdf_en || item.pdf_ja) && (
+    <div class="pdfs">
+      {item.pdf_en && <a class="btn" href={item.pdf_en} target="_blank">PDF(EN)</a>}
+      {item.pdf_ja && <a class="btn" href={item.pdf_ja} target="_blank">PDF(JA)</a>}
+    </div>
+  )}
+</article>
+
+<style>
+.paper{padding:16px 0;border-bottom:1px solid #e9eef5}
+.title{font-size:18px;font-weight:700;margin:0 0 4px}
+.en{color:#6b7280;font-size:14px;margin-bottom:6px}
+.meta{color:#374151;font-size:14px}
+.meta a{color:#1d4ed8;text-decoration:none}
+.meta .dot{margin:0 8px;color:#9ca3af}
+.authors{color:#4b5563;margin-top:4px;font-size:13px}
+.abs{color:#374151;margin:8px 0 0;font-size:14px;line-height:1.6}
+.tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:3px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+.pdfs{margin-top:8px;display:flex;gap:8px}
+.btn{display:inline-block;padding:6px 10px;border-radius:8px;background:#0f2d5e;color:#fff;text-decoration:none;font-size:12px}
+</style>

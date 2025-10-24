@@ -1,56 +1,149 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/SiteHeader.astro';
-import Footer from '../../components/SiteFooter.astro';
-import { withBase } from '../../lib/url';
-const pageTitle = '临床文献库';
+import TagChips from '../../components/TagChips.astro';
+import PaperCard from '../../components/PaperCard.astro';
+
+// 构建前写入的本地数据（若首次为空，前端会走 API 兜底）
+let tx = {articleTypes:[],studyDesigns:[],keywords:[]};
+let minis = [];
+try { tx = (await import('../../data/paper_taxonomy.json')).default } catch {}
+try { minis = (await import('../../data/papers_minisearch.json')).default } catch {}
+let first20 = minis.slice(0,20);
 ---
-<BaseLayout title={pageTitle} description="Biobran 临床文献库" lang="zh">
-  <Fragment slot="header"><Header /></Fragment>
+<h1>学术检索 · 大和米蕈（BioBran®/MGN-3）</h1>
 
-  <section class="mx-auto max-w-7xl px-4 py-10">
-    <h1 class="text-3xl md:text-5xl font-semibold">{pageTitle}</h1>
-    <div class="mt-6 grid gap-3 md:grid-cols-3">
-      <input id="q" placeholder="关键词 / 标题 / 作者" class="border p-2 rounded" />
-      <input id="year" type="number" placeholder="年份" class="border p-2 rounded" />
-      <button id="search" class="px-4 py-2 rounded bg-brand text-white">搜索</button>
-    </div>
-    <div id="list" class="mt-8 grid gap-4"></div>
-  </section>
+<section class="searchbox">
+  <input id="q" placeholder="输入标题、作者、关键词…" />
+  <button id="go">搜索</button>
+  <label class="hint"><input id="cloud" type="checkbox" checked /> 启用云端扩展</label>
+</section>
 
-  <script is:inline>
-    const api = new URL(import.meta.env.BASE_URL + 'api/papers.json', location.origin).toString();
-    const list = document.getElementById('list');
-    let cache = [];
-    async function load() {
-      const res = await fetch(api);
-      const json = await res.json();
-      cache = json.data || [];
-      render(cache);
-    }
-    function render(items) {
-      list.innerHTML = items.map(p => `
-        <a class="block p-4 border rounded hover:shadow-card" href="${import.meta.env.BASE_URL}zh/biobran/medical/papers/${p.slug}/">
-          <div class="text-lg font-semibold">${p.title}</div>
-          <div class="text-sm text-neutral-600 mt-1">${(p.authors||[]).join(', ')} · ${p.journal||''} · ${p.year||''}</div>
-          <div class="text-sm mt-2">${(p.keywords||[]).slice(0,5).join(' · ')}</div>
-        </a>
-      `).join('');
-    }
-    document.getElementById('search').addEventListener('click', () => {
-      const q = (document.getElementById('q').value || '').toLowerCase();
-      const year = document.getElementById('year').value;
-      let items = cache;
-      if (q) items = items.filter(p =>
-        (p.title||'').toLowerCase().includes(q) ||
-        (p.authors||[]).join(' ').toLowerCase().includes(q) ||
-        (p.keywords||[]).join(' ').toLowerCase().includes(q)
-      );
-      if (year) items = items.filter(p => String(p.year||'') === String(year));
-      render(items);
+<section class="filters">
+  <h3>文章类型</h3>
+  <TagChips items={tx.articleTypes} name="types" />
+  <h3>研究设计</h3>
+  <TagChips items={tx.studyDesigns} name="designs" />
+  <h3>关键词</h3>
+  <TagChips items={tx.keywords.slice(0,60)} name="kws" />
+</section>
+
+<section id="res">
+  {first20.map(item => <PaperCard item={item} />)}
+</section>
+
+<style>
+h1{font-size:24px;margin:12px 0 16px}
+.searchbox{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+#q{flex:1;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px}
+#go{padding:10px 14px;border:none;border-radius:10px;background:#0f2d5e;color:#fff}
+.hint{color:#4b5563;margin-left:8px}
+.filters h3{font-size:16px;margin:16px 0 8px}
+</style>
+
+<script>
+(async function(){
+  // === 关键改动：与 Comments.astro 一致的 apiBase 计算 ===
+  const meta = document.querySelector('meta[name="tcb-api-base"]');
+  const apiBase = (meta && meta.content ? meta.content.replace(/\/+$/, '') : location.origin);
+
+  // 云函数直连地址（与我们提供的 6 个云函数路径一致）
+  const API = {
+    taxonomy: `${apiBase}/papers/export/taxonomy`,
+    minis:    `${apiBase}/papers/export/minisearch`,
+    statkw:   `${apiBase}/papers/export/static-keywords`,
+    search:   `${apiBase}/papers/search`
+  };
+
+  // 可选：MiniSearch（CDN 版，未加载成功时自动降级）
+  let mini = null, miniData = [];
+  try {
+    const MiniSearch = (await import('https://cdn.jsdelivr.net/npm/minisearch@7.1.0/dist/umd/index.min.js')).default;
+    miniData = await fetch(API.minis).then(r=>r.json()).catch(()=>[]);
+    mini = new MiniSearch({ fields:['title','title_en','journal','abstract','keywords'], storeFields:['*'] });
+    mini.addAll(miniData);
+  } catch(e) {
+    // 降级：后面会在实际搜索时做本地包含匹配
+  }
+
+  const $q = document.getElementById('q');
+  const $go = document.getElementById('go');
+  const $cloud = document.getElementById('cloud');
+  const $res = document.getElementById('res');
+  const $filters = document.querySelectorAll('.chip-wrap');
+
+  function currentFilters(){
+    const obj = {};
+    $filters.forEach(wrap => {
+      const name = wrap.dataset.name;
+      const sel = [...wrap.querySelectorAll('.chip.active')].map(b=>b.dataset.v);
+      if (sel.length) obj[name] = sel;
     });
-    load();
-  </script>
+    return obj;
+  }
 
-  <Fragment slot="footer"><Footer /></Fragment>
-</BaseLayout>
+  async function ensureLocalData() {
+    if (miniData.length) return;
+    try {
+      // 本地回退：再次尝试云端；若还是失败，退到构建期写入的 JSON（首屏已渲染一批）
+      miniData = await fetch(API.minis).then(r=>r.json());
+    } catch {
+      // 保留为空；首屏的 20 篇由服务器端 import 的数据已渲染
+    }
+  }
+
+  async function search(){
+    const q = $q.value.trim();
+    const f = currentFilters();
+
+    // 本地（MiniSearch 或简易包含）：
+    let local = [];
+    if (mini){
+      const res = mini.search(q || '', { prefix: true, fuzzy: 0.1 });
+      local = res.map(x=>x);
+    } else {
+      await ensureLocalData();
+      local = miniData.filter(it => {
+        const text = (it.title+' '+it.title_en+' '+it.journal+' '+(it.abstract||'')+' '+(it.keywords||[]).join(' ')).toLowerCase();
+        return !q || text.includes(q.toLowerCase());
+      });
+    }
+    if (f.types?.length)   local = local.filter(it => f.types.includes(it.article_type));
+    if (f.designs?.length) local = local.filter(it => f.designs.includes(it.study_design));
+    if (f.kws?.length)     local = local.filter(it => (it.keywords||[]).every(k=> f.kws.includes(k) || f.kws.some(s=>k.includes(s)) ));
+
+    // 云端扩展（与 Comments.astro 一样通过 apiBase 直连云函数）
+    let merged = local;
+    if ($cloud.checked){
+      const params = new URLSearchParams();
+      if (q) params.set('q', q);
+      if (f.types?.length) params.set('types', f.types.join(','));
+      if (f.designs?.length) params.set('designs', f.designs.join(','));
+      if (f.kws?.length) params.set('kws', f.kws.join(','));
+      try {
+        const cloud = await fetch(`${API.search}?${params}`).then(r=>r.json());
+        const byId = new Map(local.map(x=>[x.id,x]));
+        for (const it of (cloud.items||[])) if (!byId.has(it.id)) merged.push(it);
+      } catch(e){}
+    }
+
+    // 渲染
+    $res.innerHTML = merged.map(item => `
+      <article class="paper">
+        <h3 class="title">${item.title||''}</h3>
+        ${item.title_en?`<div class="en">${item.title_en}</div>`:''}
+        <div class="meta">
+          <span class="journal">${item.journal||''}</span>
+          ${item.year?`<span class="dot">•</span>${item.year}`:''}
+          ${item.doi?`<span class="dot">•</span><a href="https://doi.org/${item.doi.replace(/^https?:\/\/doi.org\//,'')}" target="_blank">DOI</a>`:''}
+        </div>
+        ${item.authors?.length?`<div class="authors">${item.authors.join(', ')}</div>`:''}
+        ${item.abstract?`<p class="abs">${item.abstract}</p>`:''}
+        <div class="tags">${(item.keywords||[]).map(k=>`<span class="chip">${k}</span>`).join('')}</div>
+      </article>
+    `).join('');
+  }
+
+  $go.addEventListener('click', search);
+  document.addEventListener('chipchange', search);
+})();
+</script>
+

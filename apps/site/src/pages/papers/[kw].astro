@@ -1,0 +1,31 @@
+---
+import PaperCard from '../../components/PaperCard.astro';
+
+// 从构建期写入的数据中读取（如果第一次为空，会生成空专题页，后续补数据再重构）
+let list = [], kws = [];
+try { list = (await import('../../data/papers_minisearch.json')).default } catch {}
+try { kws  = (await import('../../data/papers_static_keywords.json')).default } catch {}
+
+// 生成静态路径：默认用全部静态关键词；也可通过环境变量只构建部分
+export async function getStaticPaths(){
+  const only = (process.env.BUILD_ONLY_KWS || '').split(',').map(s=>s.trim()).filter(Boolean);
+  const use = only.length ? kws.filter(k => only.includes(k)) : kws;
+  return use.map(k => ({ params: { kw: k } }));
+}
+
+const { kw } = Astro.params;
+const items = list.filter(x =>
+  (x.keywords || []).includes(kw) ||
+  (x.title || '').includes(kw) ||
+  (x.abstract || '').includes(kw)
+);
+---
+
+<h1>专题：{kw}</h1>
+<section>
+  {items.length ? items.map(item => <PaperCard item={item} />) : <p>暂无该专题的文章。</p>}
+</section>
+
+<style>
+h1{font-size:22px;margin:12px 0 16px}
+</style>
