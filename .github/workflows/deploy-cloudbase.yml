@@ -1,27 +1,38 @@
 name: Deploy to CloudBase
 on: { push: { branches: [ main ] } }
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    # NOTE: GitHub 的 Repository variables 不会自动注入到 process.env。
+    # 显式注入这些 PUBLIC_*，确保 CI 构建与 CloudBase framework build 都能拿到：
+    # - Astro canonical/site（PUBLIC_CANONICAL_HOST）
+    # - papers 云端同步 API Base（PUBLIC_TCB_API_BASE）
+    env:
+      PUBLIC_BASE: /
+      PUBLIC_CANONICAL_HOST: ${{ vars.PUBLIC_CANONICAL_HOST }}
+      PUBLIC_TCB_API_BASE: ${{ vars.PUBLIC_TCB_API_BASE }}
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - name: Install & Build (Astro)
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build
         working-directory: apps/site
-        run: |
-          npm ci || npm i
-          npm run build
-      - name: List dist
-        run: |
-          ls -la apps/site/dist
-          echo "------"
-          find apps/site/dist -maxdepth 2 -type f | head -n 50
-      - name: Deploy to Tencent CloudBase
+        run: npm run build
+
+      - name: Deploy to CloudBase
         uses: TencentCloudBase/cloudbase-action@v2.0.1
         with:
           secretId: ${{ secrets.SECRETID }}
           secretKey: ${{ secrets.SECRETKEY }}
           envId: ${{ secrets.ENVID }}
         env:
-          envId: ${{ secrets.ENVID }}
+          ENVID: ${{ secrets.ENVID }}
