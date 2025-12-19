@@ -1,14 +1,15 @@
 name: Deploy to CloudBase
-on: { push: { branches: [ main ] } }
+
+on:
+  push:
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    # NOTE: GitHub 的 Repository variables 不会自动注入到 process.env。
-    # 显式注入这些 PUBLIC_*，确保 CI 构建与 CloudBase framework build 都能拿到：
-    # - Astro canonical/site（PUBLIC_CANONICAL_HOST）
-    # - papers 云端同步 API Base（PUBLIC_TCB_API_BASE）
+    # 关键：把 GitHub Actions 的 Repository variables 注入到构建环境
+    # （这些不是自动变成环境变量的，必须在 workflow 里显式 export）
     env:
       PUBLIC_BASE: /
       PUBLIC_CANONICAL_HOST: ${{ vars.PUBLIC_CANONICAL_HOST }}
@@ -19,20 +20,35 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
+      # ✅ 这里不再直接 npm ci（没 lockfile 会炸），而是：有 lockfile 用 ci；没有就 install
       - name: Install deps
-        run: npm ci
+        working-directory: apps/site
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install --no-audit --no-fund
+          fi
 
-      - name: Build
+      - name: Build (Astro)
         working-directory: apps/site
         run: npm run build
 
-      - name: Deploy to CloudBase
+      - name: List dist
+        run: |
+          ls -la apps/site/dist
+          echo "------"
+          find apps/site/dist -maxdepth 2 -type f | head -n 80
+
+      - name: Deploy to Tencent CloudBase
         uses: TencentCloudBase/cloudbase-action@v2.0.1
         with:
           secretId: ${{ secrets.SECRETID }}
           secretKey: ${{ secrets.SECRETKEY }}
           envId: ${{ secrets.ENVID }}
+          # 推荐明确写 command，避免 action 默认行为变化
+          command: framework deploy
         env:
-          ENVID: ${{ secrets.ENVID }}
+          envId: ${{ secrets.ENVID }}
