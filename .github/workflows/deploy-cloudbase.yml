@@ -23,6 +23,11 @@ jobs:
       TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
 
     steps:
+      - name: Show tcb versions
+        run: |
+          tcb -v
+          tcb framework -h | head -n 40
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -65,9 +70,16 @@ jobs:
         shell: bash
         run: tcb hosting deploy apps/site/dist -e "$envId"
 
-      - name: Deploy functions (framework, Nodejs12.16)
+      - name: Deploy via framework (prefer functions-only)
         shell: bash
         run: |
           set -e
-          # 让 framework-plugin-function 按 cloudbaserc.json 的 runtime=Nodejs12.16 部署
-          tcb framework deploy -e "$envId" --only functions
+          if tcb framework deploy -h 2>&1 | grep -q -- '--only'; then
+            echo "[cloudbase] framework supports --only, deploy functions only"
+            tcb framework deploy -e "$envId" --only functions
+          else
+            echo "[cloudbase] framework has no --only, fallback to full deploy"
+            tcb framework deploy -e "$envId"
+          fi
+
+
