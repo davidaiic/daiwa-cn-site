@@ -1,0 +1,15 @@
+{
+  "last_run_at": "2025-12-23T08:41:16.083Z",
+  "last_since_ms": 1766479276084,
+  "mode": "full",
+  "api_base": "https://shiyaoprice-4gl8n61ibf516ead-1334775748.ap-shanghai.app.tcloudbase.com",
+  "counts": {
+    "local_papers": 13,
+    "remote_minisearch": 1,
+    "remote_patch": 1,
+    "remote_deleted": 1,
+    "remote_static_keywords": 2,
+    "output_minisearch": 13,
+    "patch_skipped_no_base": 0
+  }
+}

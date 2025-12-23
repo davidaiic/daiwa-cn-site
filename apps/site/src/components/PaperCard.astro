@@ -1,40 +1,150 @@
 ---
-const { item } = Astro.props;
+interface PaperMini {
+  slug?: string;
+  title?: string;
+  title_zh?: string;
+  title_en?: string;
+  journal?: string;
+  journal_zh?: string;
+  journal_en?: string;
+  year?: number | string;
+  doi?: string;
+  authors?: string[] | string;
+  abstract?: string;
+  keywords?: string[];
+  keywords_cn?: string[];
+}
+
+const { item } = Astro.props as { item: PaperMini };
+
+const title =
+  item?.title_zh ||
+  item?.title ||
+  '';
+const titleEn = item?.title_en || '';
+const journal =
+  item?.journal_zh ||
+  item?.journal_en ||
+  item?.journal ||
+  '';
+const year = item?.year ? String(item.year) : '';
+
+const doiRaw = item?.doi || '';
+const doi = doiRaw.replace(/^https?:\/\/doi.org\//, '');
+const doiLink = doi ? `https://doi.org/${doi}` : '';
+
+const authors = Array.isArray(item?.authors)
+  ? item.authors.join(', ')
+  : (item?.authors || '');
+
+const abstractText = item?.abstract || '';
+
+const keywords =
+  (Array.isArray(item?.keywords_cn) && item.keywords_cn.length
+    ? item.keywords_cn
+    : (Array.isArray(item?.keywords) ? item.keywords : [])) || [];
+
+const detailHref = item?.slug
+  ? `/papers/${encodeURIComponent(item.slug)}/`
+  : '';
 ---
 <article class="paper">
-  <h3 class="title">{item.title}</h3>
-  {item.title_en && <div class="en">{item.title_en}</div>}
-  <div class="meta">
-    <span class="journal">{item.journal}</span>
-    {item.year && <span class="dot">•</span>}
-    {item.year && <span>{item.year}</span>}
-    {item.doi && <span class="dot">•</span>}
-    {item.doi && <a href={"https://doi.org/"+item.doi.replace(/^https?:\/\/doi.org\//,'')} target="_blank" rel="noopener">DOI</a>}
-  </div>
-  {item.authors?.length ? <div class="authors">{item.authors.join(', ')}</div> : null}
-  {item.abstract && <p class="abs">{item.abstract}</p>}
-  <div class="tags">
-    {(item.keywords||[]).map(k => <span class="chip" data-kw={k}>{k}</span>)}
-  </div>
-  {(item.pdf_en || item.pdf_ja) && (
-    <div class="pdfs">
-      {item.pdf_en && <a class="btn" href={item.pdf_en} target="_blank">PDF(EN)</a>}
-      {item.pdf_ja && <a class="btn" href={item.pdf_ja} target="_blank">PDF(JA)</a>}
+  <h3 class="title">
+    {detailHref ? (
+      <a href={detailHref}>{title}</a>
+    ) : (
+      title
+    )}
+  </h3>
+
+  {titleEn && <p class="en">{titleEn}</p>}
+
+  {(journal || year || doiLink) && (
+    <p class="meta">
+      {journal && <span class="journal">{journal}</span>}
+      {journal && (year || doiLink) && <span class="dot">·</span>}
+      {year && <span class="year">{year}</span>}
+      {year && doiLink && <span class="dot">·</span>}
+      {doiLink && (
+        <a href={doiLink} target="_blank" rel="noopener noreferrer">
+          DOI
+        </a>
+      )}
+    </p>
+  )}
+
+  {authors && <p class="authors">{authors}</p>}
+
+  {abstractText && <p class="abs">{abstractText}</p>}
+
+  {!!keywords.length && (
+    <div class="tags">
+      {keywords.map((kw) => (
+        <span class="chip" aria-label={`关键词：${kw}`}>{kw}</span>
+      ))}
     </div>
   )}
 </article>
 
 <style>
-.paper{padding:16px 0;border-bottom:1px solid #e9eef5}
-.title{font-size:18px;font-weight:700;margin:0 0 4px}
-.en{color:#6b7280;font-size:14px;margin-bottom:6px}
-.meta{color:#374151;font-size:14px}
-.meta a{color:#1d4ed8;text-decoration:none}
-.meta .dot{margin:0 8px;color:#9ca3af}
-.authors{color:#4b5563;margin-top:4px;font-size:13px}
-.abs{color:#374151;margin:8px 0 0;font-size:14px;line-height:1.6}
-.tags{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
-.chip{padding:3px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
-.pdfs{margin-top:8px;display:flex;gap:8px}
-.btn{display:inline-block;padding:6px 10px;border-radius:8px;background:#0f2d5e;color:#fff;text-decoration:none;font-size:12px}
+:global(.paper) {
+  padding: 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+:global(.paper:last-child) {
+  border-bottom: none;
+}
+:global(.paper .title) {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+:global(.paper .title a) {
+  color: #111827;
+  text-decoration: none;
+}
+:global(.paper .title a:hover) {
+  text-decoration: underline;
+}
+:global(.paper .en) {
+  color: #4b5563;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+:global(.paper .meta) {
+  color: #374151;
+  font-size: 14px;
+}
+:global(.paper .meta a) {
+  color: #1d4ed8;
+  text-decoration: none;
+}
+:global(.paper .meta .dot) {
+  margin: 0 8px;
+  color: #9ca3af;
+}
+:global(.paper .authors) {
+  color: #4b5563;
+  margin-top: 4px;
+  font-size: 13px;
+}
+:global(.paper .abs) {
+  color: #374151;
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+:global(.paper .tags) {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+:global(.paper .tags .chip) {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+}
 </style>

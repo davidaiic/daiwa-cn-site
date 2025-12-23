@@ -1,0 +1,11 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\.github",
+    "\\.github\\workflows",
+    "\\apps",
+    "\\apps\\site",
+    "\\functions"
+  ],
+  "PreviewInSolutionExplorer": false
+}

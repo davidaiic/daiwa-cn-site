@@ -48,14 +48,30 @@ for(const kind of ['wiki','columns','news']){
   }
 }
 
-// papers.yaml
-const papersYaml = path.join(base, 'data', 'papers.yaml');
-if(fs.existsSync(papersYaml)){
-  const y = YAML.parse(fs.readFileSync(papersYaml,'utf-8')) || [];
-  for(const p of y){
-    const slug = (p.id || p.title || '').toString().toLowerCase().replace(/[^a-z0-9\-]+/g,'-');
-    const url = `${prefix}/zh/biobran/medical/papers/${slug}/`;
-    add('papers', url, p.year ? `${p.year}-01-01` : '');
+// papers.json (preferred) / papers.yaml (fallback)
+const papersJson = path.join(base, 'src', 'data', 'papers.json');
+if(fs.existsSync(papersJson)){
+  const jsonRaw = fs.readFileSync(papersJson, 'utf-8') || '[]';
+  let parsed;
+  try { parsed = JSON.parse(jsonRaw); } catch { parsed = []; }
+  const list = Array.isArray(parsed.data) ? parsed.data : (Array.isArray(parsed) ? parsed : []);
+
+  for(const p of list){
+    if(!p || !p.slug) continue;
+    const slug = String(p.slug);
+    const url = `${prefix}/papers/${encodeURIComponent(slug)}/`;
+    const lastmod = p.year ? `${p.year}-01-01` : '';
+    add('papers', url, lastmod);
+  }
+} else {
+  const papersYaml = path.join(base, 'data', 'papers.yaml');
+  if(fs.existsSync(papersYaml)){
+    const y = YAML.parse(fs.readFileSync(papersYaml,'utf-8')) || [];
+    for(const p of y){
+      const slug = (p.id || p.title || '').toString().toLowerCase().replace(/[^a-z0-9\-]+/g,'-');
+      const url = `${prefix}/papers/${encodeURIComponent(slug)}/`;
+      add('papers', url, p.year ? `${p.year}-01-01` : '');
+    }
   }
 }
 

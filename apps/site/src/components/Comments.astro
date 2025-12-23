@@ -18,7 +18,12 @@ const { articleId } = Astro.props;
         : (typeof location !== 'undefined' ? location.pathname : '');
 
       const meta = document.querySelector('meta[name="tcb-api-base"]');
-      const apiBase = (meta && meta.content ? meta.content.replace(/\/+$/, '') : location.origin);
+
+      const apiBase = (meta && meta.content ? meta.content.replace(/\/+$/, '') : '');
+      if (!apiBase) {
+        loadBtn?.addEventListener('click', () => alert('未配置评论服务（tcb-api-base为空）'));
+        return;
+      }
 
       const listApi = `${apiBase}/api/comment-list`;
       const postApi = `${apiBase}/api/comment-post`;

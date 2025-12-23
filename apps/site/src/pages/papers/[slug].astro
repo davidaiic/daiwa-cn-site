@@ -1,84 +1,393 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import Header from '../../components/SiteHeader.astro';
-import Footer from '../../components/SiteFooter.astro';
-import { loadPapers } from '../../lib/papers';
-import Comments from '../../components/Comments.astro';  // ← 新增
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Comments from '@/components/Comments.astro';
 
-import WikiInlineLinks from '../../components/WikiInlineLinks.astro';
+import papersJson from '../../data/papers.json';
+import minisearchJson from '../../data/papers_minisearch.json';
+import deletedJson from '../../data/papers_deleted.json';
 
-// import { getEntry } from 'astro:content';
-// let NotesContent: any = null;
-// try {   const notes = await getEntry('paperNotes', Astro.params.slug);   ({ Content: NotesContent } = await notes.render());} catch (_) {   }
-// 没有对应的解读文件就忽略
-// 
+export const prerender = true;
 
-export async function getStaticPaths() {
-  const list = loadPapers();
-  return list.map(p => ({ params: { slug: p.slug }, props: { paper: p } }));
+// ---------- helpers (render-time) ----------
+function toArray(v) {
+  if (!v) return [];
+  return Array.isArray(v) ? v.filter(Boolean) : [v].filter(Boolean);
 }
 
-const { paper } = Astro.props;
-const title = paper?.title || 'Paper';
-const desc = `${(paper?.authors||[]).join(', ')} · ${paper?.journal||''} · ${paper?.year||''}`;
-const canonical = new URL(import.meta.env.BASE_URL + `zh/biobran/medical/papers/${paper.slug}/`, Astro.site || 'http://localhost').toString();
+function normalizeTextKey(x) {
+  return String(x || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[’'"]/g, '');
+}
 
-// 计算评论用的文章ID（用“最终页面路径”作主键）
-const articleId = new URL(
-  (import.meta.env.BASE_URL || '/') + `zh/biobran/medical/papers/${paper.slug}/`,
-  Astro.site || 'http://localhost'
-).pathname;
+function asList(jsonLike) {
+  return (jsonLike?.data || jsonLike || []).filter(Boolean);
+}
 
-const jsonld = {
-  "@context": "https://schema.org",
-  "@type": "ScholarlyArticle",
-  "headline": paper.title,
-  "author": (paper.authors||[]).map(a => ({ "@type":"Person", name:a })),
-  "datePublished": paper.year ? `${paper.year}-01-01` : undefined,
-  "isPartOf": paper.journal ? { "@type":"Periodical", name: paper.journal } : undefined,
-  "sameAs": paper.url || undefined
-};
+function pickKeywords(p) {
+  const cn = toArray(p?.keywords_cn);
+  const en = toArray(p?.keywords);
+  return cn.length ? cn : en;
+}
+
+// 关键词 URL 段（避免 / 导致多层路径）
+function kwToPathSegment(x) {
+  return String(x || '')
+    .trim()
+    .replaceAll('/', '／')
+    .replaceAll('\\', '＼')
+    .replaceAll(':', '：')
+    .replaceAll('?', '？')
+    .replaceAll('*', '＊')
+    .replaceAll('"', '＂')
+    .replaceAll('<', '＜')
+    .replaceAll('>', '＞')
+    .replaceAll('|', '｜');
+}
+
+// slug URL 段（同理，尽量避免非法字符）
+function slugToPathSegment(x) {
+  return String(x || '')
+    .trim()
+    .replaceAll('/', '／')
+    .replaceAll('\\', '＼')
+    .replaceAll(':', '：')
+    .replaceAll('?', '？')
+    .replaceAll('*', '＊')
+    .replaceAll('"', '＂')
+    .replaceAll('<', '＜')
+    .replaceAll('>', '＞')
+    .replaceAll('|', '｜');
+}
+
+function slugFromPathSegment(x) {
+  return String(x || '')
+    .trim()
+    .replaceAll('／', '/')
+    .replaceAll('＼', '\\');
+}
+
+function buildMiniMap(minis) {
+  const m = new Map();
+  for (const d of minis || []) {
+    if (!d) continue;
+    const slug = d.slug || d._id;
+    if (!slug) continue;
+    m.set(String(slug).trim(), d);
+  }
+  return m;
+}
+
+function mergeMetaIntoPaper(paper, meta) {
+  if (!meta) return paper;
+  const out = { ...(paper || {}) };
+
+  const setIf = (k, v) => {
+    if (v === undefined || v === null) return;
+    if (typeof v === 'string' && v.trim() === '') return;
+    if (Array.isArray(v) && v.length === 0) return;
+    out[k] = v;
+  };
+
+  setIf('title_zh', meta.title_zh);
+  setIf('title_en', meta.title_en);
+  setIf('journal', meta.journal);
+  setIf('journal_zh', meta.journal_zh);
+  setIf('year', meta.year);
+  setIf('doi', meta.doi);
+  setIf('authors', meta.authors);
+
+  if (toArray(meta.keywords_cn).length || toArray(meta.keywords).length) {
+    out.keywords_cn = toArray(meta.keywords_cn);
+    out.keywords = toArray(meta.keywords);
+  }
+
+  if (meta.abstract_zh || meta.abstract || meta.abstract_en) {
+    out.abstract_zh = meta.abstract_zh || meta.abstract || out.abstract_zh;
+    out.abstract_en = meta.abstract_en || out.abstract_en;
+  }
+
+  out.title = out.title_zh || out.title_en || out.title;
+  out.abstract = out.abstract_zh || out.abstract_en || out.abstract;
+
+  return out;
+}
+
+function scoreRec(candidate, ctx) {
+  const { seedKeywords, seedYear, seedArticleType, seedStudyDesign } = ctx;
+  let s = 0;
+
+  const candKeywords = new Set(
+    pickKeywords(candidate).map((x) => String(x).toLowerCase().trim()).filter(Boolean)
+  );
+
+  for (const kw of seedKeywords || []) {
+    if (candKeywords.has(String(kw).toLowerCase().trim())) s += 10;
+  }
+
+  if (seedArticleType && candidate.article_type === seedArticleType) s += 3;
+  if (seedStudyDesign && candidate.study_design === seedStudyDesign) s += 2;
+
+  const cy = typeof candidate.year === 'number' ? candidate.year : Number(candidate.year || 0);
+  if (seedYear && cy) {
+    const d = Math.abs(seedYear - cy);
+    s += Math.max(0, 5 - Math.min(5, d));
+  } else if (cy) {
+    s += Math.max(0, Math.min(5, (cy - 2000) / 10));
+  }
+
+  return s;
+}
+
+function recommend(minis, ctx, excludeSlug, limit = 8) {
+  const pool = (minis || []).filter((x) => x && x.slug && x.slug !== excludeSlug);
+  return pool
+    .map((c) => ({ c, s: scoreRec(c, ctx) }))
+    .sort(
+      (a, b) =>
+        b.s - a.s ||
+        (b.c.year || 0) - (a.c.year || 0) ||
+        String(a.c.slug).localeCompare(String(b.c.slug))
+    )
+    .map((x) => x.c)
+    .slice(0, limit);
+}
+
+// ---------- getStaticPaths（static 构建必需） ----------
+// NOTE: 这里不要依赖外部 helper，避免 Astro 构建时出现 “xxx is not defined”。
+export async function getStaticPaths() {
+  const asListL = (j) => (j?.data || j || []).filter(Boolean);
+  const slugToPathSegmentL = (x) =>
+    String(x || '')
+      .trim()
+      .replaceAll('/', '／')
+      .replaceAll('\\', '＼')
+      .replaceAll(':', '：')
+      .replaceAll('?', '？')
+      .replaceAll('*', '＊')
+      .replaceAll('"', '＂')
+      .replaceAll('<', '＜')
+      .replaceAll('>', '＞')
+      .replaceAll('|', '｜');
+
+  const papersList = asListL(papersJson);
+  const minisList = asListL(minisearchJson);
+  const deletedList = asListL(deletedJson);
+
+  const slugs = new Map(); // rawSlug -> { isDeleted }
+  for (const p of papersList) {
+    if (!p?.slug) continue;
+    slugs.set(String(p.slug).trim(), { isDeleted: false });
+  }
+  for (const m of minisList) {
+    const s = String(m?.slug || m?._id || '').trim();
+    if (!s) continue;
+    if (!slugs.has(s)) slugs.set(s, { isDeleted: false });
+  }
+  for (const d of deletedList) {
+    const s = String(d?.slug || d?._id || '').trim();
+    if (!s) continue;
+    slugs.set(s, { isDeleted: true });
+  }
+
+  return Array.from(slugs.entries()).map(([slugRaw, info]) => ({
+    params: { slug: slugToPathSegmentL(slugRaw) },
+    props: { slugRaw, isDeleted: Boolean(info?.isDeleted) },
+  }));
+}
+
+// ---------- page data ----------
+const papersList = asList(papersJson);
+const minisList = asList(minisearchJson);
+const deletedList = asList(deletedJson);
+
+const deletedSet = new Set(deletedList.map((x) => x.slug || x._id).filter(Boolean));
+const miniMap = buildMiniMap(minisList);
+
+const slugParam = decodeURIComponent(Astro.params.slug || '');
+const slugRaw = (Astro.props?.slugRaw ? String(Astro.props.slugRaw) : slugFromPathSegment(slugParam)).trim();
+
+// soft404：如果 slug 在 deleted 列表里
+const deletedEntry = deletedList.find((x) => (x.slug || x._id) === slugRaw) || null;
+const isDeleted = Boolean(Astro.props?.isDeleted) || Boolean(deletedEntry);
+
+// 优先本地完整 papers.json；其次 minisearch（保证列表里的远端条目不会 404）
+let paper =
+  papersList.find((p) => p.slug === slugRaw) ||
+  papersList.find((p) => normalizeTextKey(p.slug) === normalizeTextKey(slugRaw)) ||
+  null;
+
+const meta = miniMap.get(slugRaw) || null;
+
+// fallback：如果 papers.json 没有，但 minisearch 有
+if (!paper && meta) {
+  paper = {
+    slug: meta.slug,
+    title_zh: meta.title_zh,
+    title_en: meta.title_en,
+    title: meta.title,
+    abstract_zh: meta.abstract_zh || meta.abstract,
+    abstract_en: meta.abstract_en,
+    abstract: meta.abstract,
+    journal: meta.journal,
+    journal_zh: meta.journal_zh,
+    year: meta.year,
+    doi: meta.doi,
+    authors: meta.authors,
+    keywords_cn: meta.keywords_cn,
+    keywords: meta.keywords,
+    article_type: meta.article_type,
+    study_design: meta.study_design,
+  };
+}
+
+// 合并 minisearch（已含 patch）到 paper（让 patch 能影响详情页）
+if (paper && meta) {
+  paper = mergeMetaIntoPaper(paper, meta);
+}
+
+// 如果是 deleted 页面：允许用 deletedEntry.patch 补标题/关键词（更友好）
+if (isDeleted) {
+  const p = deletedEntry?.patch || {};
+  paper = mergeMetaIntoPaper(paper || { slug: slugRaw }, p);
+}
+
+const pageTitle = isDeleted
+  ? `该页面已下线：${paper?.title_zh || paper?.title || slugRaw}`
+  : `${paper?.title_zh || paper?.title || slugRaw}`;
+
+const keywordList = pickKeywords(paper);
+
+const pdfLinks = [
+  paper?.pdf_zh ? { label: 'PDF（中文）', url: paper.pdf_zh } : null,
+  paper?.pdf_en ? { label: 'PDF（英文）', url: paper.pdf_en } : null,
+  paper?.pdf_ja ? { label: 'PDF（日文）', url: paper.pdf_ja } : null,
+].filter(Boolean);
+
+// 推荐阅读：用 minisearch 做候选池，自动过滤 deleted
+const minisSafe = minisList.filter((x) => x && x.slug && !deletedSet.has(x.slug));
+const recs = recommend(
+  minisSafe,
+  {
+    seedKeywords: keywordList,
+    seedYear: paper?.year ? Number(paper.year) : null,
+    seedArticleType: paper?.article_type || '',
+    seedStudyDesign: paper?.study_design || '',
+  },
+  slugRaw,
+  8
+);
 ---
-<BaseLayout title={title} description={desc} lang="zh">
-  <Fragment slot="header"><Header /></Fragment>
 
-  <article class="mx-auto max-w-3xl px-4 py-10">
-    <h1 class="text-3xl md:text-5xl font-semibold">{paper.title}</h1>
-    <p class="mt-3 text-neutral-600">{(paper.authors||[]).join(', ')} · {paper.journal} · {paper.year}</p>
+<BaseLayout
+  title={pageTitle}
+  description={paper?.abstract_zh || paper?.abstract || paper?.abstract_en || paper?.title_en || ''}>
 
-    {paper.abstract && <div class="mt-6 p-4 border rounded bg-white shadow-card">
-      <h2 class="text-xl font-semibold">摘要</h2>
-      <p class="mt-2">{paper.abstract}</p>
-    </div>}
+  {isDeleted ? (
+    <section class="container mx-auto px-4 py-10">
+      <meta name="robots" content="noindex,follow" />
+      <h1 class="text-3xl font-bold mb-2">该页面已下线</h1>
+      <p class="text-gray-600 mb-8">
+        你访问的内容已被移除（soft 404）。你仍然可以继续浏览站内其它文献。
+      </p>
 
-    <div class="mt-6 grid gap-2 text-sm">
-      {paper.study_type && <div><b>研究类型：</b>{paper.study_type}</div>}
-      {paper.population && <div><b>受试人群：</b>{paper.population}</div>}
-      {(paper.outcomes||[]).length ? <div><b>主要结局：</b>{paper.outcomes.join('；')}</div> : null}
-      {(paper.keywords||[]).length ? <div><b>关键词：</b>{paper.keywords.join('，')}</div> : null}
-      {paper.doi || paper.url ? <div><b>外部链接：</b>
-        {paper.doi && <a class="text-brand underline" href={`https://doi.org/${paper.doi}`} target="_blank" rel="nofollow">DOI</a>}
-        {paper.url && <a class="text-brand underline ml-3" href={paper.url} target="_blank" rel="nofollow">来源</a>}
-      </div> : null}
-    </div>
+      {recs.length > 0 && (
+        <div>
+          <h2 class="text-xl font-bold mb-4">推荐阅读</h2>
+          <ul class="list-disc pl-6 space-y-2">
+            {recs.map((r) => (
+              <li>
+                <a class="text-blue-600 hover:underline" href={`/papers/${encodeURIComponent(slugToPathSegment(r.slug))}/`}>
+                  {r.title_zh || r.title}
+                </a>
+                <span class="text-gray-500"> {r.year ? `· ${r.year}` : ''}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </section>
+  ) : (
+    <article class="container mx-auto px-4 py-10">
+      <h1 class="text-3xl font-bold mb-2">{paper?.title_zh || paper?.title}</h1>
+      {paper?.title_en && <p class="text-gray-700 mb-4">{paper.title_en}</p>}
 
+      <div class="text-sm text-gray-600 mb-6 space-y-1">
+        {paper?.authors && paper.authors.length > 0 && (
+          <div><span class="font-semibold">Authors:</span> {paper.authors.join(', ')}</div>
+        )}
+        {(paper?.journal_zh || paper?.journal) && (
+          <div><span class="font-semibold">Journal:</span> {paper.journal_zh || paper.journal}</div>
+        )}
+        {paper?.year && <div><span class="font-semibold">Year:</span> {paper.year}</div>}
+        {paper?.doi && (
+          <div>
+            <span class="font-semibold">DOI:</span>{' '}
+            <a class="text-blue-600 hover:underline" href={`https://doi.org/${paper.doi}`} target="_blank" rel="noopener noreferrer">
+              {paper.doi}
+            </a>
+          </div>
+        )}
+      </div>
 
+      {keywordList.length > 0 && (
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-3">关键词</h2>
+          <div class="flex flex-wrap gap-2">
+            {keywordList.map((k) => (
+              <a class="px-3 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-sm" href={`/papers/${encodeURIComponent(kwToPathSegment(k))}/`}>
+                {k}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
-<!-- 省略头部 -->
-<article class="prose">
-  <WikiInlineLinks>
-    <!-- 这里包住论文正文那一块（你原来输出正文的 HTML/变量） -->
-    <!-- 例如： -->
-    <p>... ... **淋巴细胞活性**用于反映 NK/T/B 等淋巴细胞的功能状态与效应能力，包括细胞毒性、增殖与细胞因子分泌等。  
-在探讨**免疫调节**时，研究者常结合 **Biobran** 等干预因素，综合评估该活性与机体免疫稳态之间的关联。 ... ...</p> 
-    <section set:html={paper.abstract} />
-  </WikiInlineLinks>
-</article>
+      {(paper?.abstract_zh || paper?.abstract_en || paper?.abstract) && (
+        <div class="mb-8">
+          <h2 class="text-xl font-bold mb-3">摘要</h2>
+          <p class="leading-7 text-gray-800 whitespace-pre-wrap">
+            {paper.abstract_zh || paper.abstract || paper.abstract_en}
+          </p>
+        </div>
+      )}
 
+      {pdfLinks.length > 0 && (
+        <div class="mb-10">
+          <h2 class="text-xl font-bold mb-3">附件</h2>
+          <ul class="list-disc pl-6 space-y-2">
+            {pdfLinks.map((p) => (
+              <li>
+                <a class="text-blue-600 hover:underline" href={p.url} target="_blank" rel="noopener noreferrer">
+                  {p.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-    <!-- 评论区（懒加载按钮触发） -->
-    <!-- 关键：把当前页面路径传给评论组件 -->
-    <Comments articleId={Astro.url.pathname} />
+      {recs.length > 0 && (
+        <div class="mt-14">
+          <h2 class="text-xl font-bold mb-4">推荐阅读</h2>
+          <ul class="list-disc pl-6 space-y-2">
+            {recs.map((r) => (
+              <li>
+                <a class="text-blue-600 hover:underline" href={`/papers/${encodeURIComponent(slugToPathSegment(r.slug))}/`}>
+                  {r.title_zh || r.title}
+                </a>
+                <span class="text-gray-500"> {r.year ? `· ${r.year}` : ''}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-  <Fragment slot="footer"><Footer /></Fragment>
+      <div class="mt-16">
+        <Comments pageKey={`papers:${paper?.slug || slugRaw}`} title={paper?.title_zh || paper?.title || ''} />
+      </div>
+    </article>
+  )}
 </BaseLayout>

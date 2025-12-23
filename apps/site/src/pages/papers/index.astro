@@ -1,149 +1,463 @@
 ---
-import TagChips from '../../components/TagChips.astro';
-import PaperCard from '../../components/PaperCard.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TagChips from '@/components/TagChips.astro';
+import PaperCard from '@/components/PaperCard.astro';
+import papersJson from '../../data/papers.json';
 
-// 构建前写入的本地数据（若首次为空，前端会走 API 兜底）
-let tx = {articleTypes:[],studyDesigns:[],keywords:[]};
-let minis = [];
-try { tx = (await import('../../data/paper_taxonomy.json')).default } catch {}
-try { minis = (await import('../../data/papers_minisearch.json')).default } catch {}
-let first20 = minis.slice(0,20);
+// 构建期注入：分类 + 本地 minisearch 数据（用于无网/云端失败时兜底）
+let tx = { articleTypes: [], studyDesigns: [], keywords: [] };
+let minis: any[] = [];
+try { tx = (await import('../../data/paper_taxonomy.json')).default; } catch {}
+try { minis = (await import('../../data/papers_minisearch.json')).default; } catch {}
+
+// 统一把 papers.json 里的 slug 收集起来：按 id 和 按标题 两种 key
+const papersList =
+  Array.isArray(papersJson?.data) ? papersJson.data :
+  (Array.isArray(papersJson) ? papersJson : []);
+
+const normDoi = (s: any) =>
+  String(s || '')
+    .trim()
+    .replace(/^https?:\/\/doi\.org\//i, '')
+    .toLowerCase();
+
+const normTitle = (s: any) =>
+  String(s || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // 零宽字符
+    .replace(/\s+/g, ' ')
+    .replace(/[·•]/g, ' ')
+    .replace(/[()（）【】[\]{}]/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ''); // 去掉绝大多数标点（保留字母/数字/中文）
+
+const pickTitle = (x: any) =>
+  (x?.title_zh || x?.title_en || x?.title || '').toString().trim();
+
+// 真实 slug 集合（用来判断 “m.id/m.doi 本身是否就是 slug”）
+const validSlugs = new Set(
+  papersList
+    .map((p: any) => String(p?.slug || '').trim())
+    .filter(Boolean)
+);
+
+// 构建多键索引：slugLookup
+const slugLookup = new Map<string, string>();
+
+for (const p of papersList) {
+  if (!p) continue;
+  const slug = String(p.slug || '').trim();
+  if (!slug) continue;
+
+  // 1) papers.json 里如果有 id
+  if (p.id) slugLookup.set(`id:${String(p.id).trim()}`, slug);
+
+  // 2) DOI
+  const doiKey = normDoi(p.doi);
+  if (doiKey) slugLookup.set(`doi:${doiKey}`, slug);
+
+  // 3) 归一化标题
+  const t = pickTitle(p);
+  if (t) slugLookup.set(`t:${normTitle(t)}`, slug);
+}
+
+// 把 slug 塞回 minis 数据里，供 PaperCard 使用
+minis = (minis || []).map((m: any) => {
+  if (!m) return m;
+
+  const ownSlug = String(m.slug || '').trim();
+  if (ownSlug) return { ...m, slug: ownSlug };
+
+  const mid = String(m.id || '').trim();
+  const mdoi = normDoi(m.doi);
+  const mt = pickTitle(m);
+
+  const mappedSlug =
+    // A) 很多数据会“id/doi 直接就是 slug”
+    (mid && validSlugs.has(mid) ? mid : '') ||
+    (mdoi && validSlugs.has(mdoi) ? mdoi : '') ||
+    // B) 走索引（id/doi/title）
+    (mid ? slugLookup.get(`id:${mid}`) : '') ||
+    (mdoi ? slugLookup.get(`doi:${mdoi}`) : '') ||
+    (mt ? slugLookup.get(`t:${normTitle(mt)}`) : '') ||
+    '';
+
+  return { ...m, slug: mappedSlug };
+});
+
+const first20 = minis.slice(0, 20);
+const pageTitle = '学术检索· 大和米蕈（BioBran®/MGN-3）';
+const pageDesc =
+  '收录 Biobran/MGN-3（大和米蕈/RBAC）相关的临床、基础与综述文献，支持按文章类型、研究设计和关键词多条件筛选。';
+const canonical = Astro.site
+  ? new URL('/papers/', Astro.site).toString()
+  : '/papers/';
 ---
-<h1>学术检索 · 大和米蕈（BioBran®/MGN-3）</h1>
+<BaseLayout title={pageTitle} description={pageDesc}>
+  <main class="container mx-auto px-4 py-6">
+    <h1>学术检索· 大和米蕈（BioBran®/MGN-3）</h1>
 
-<section class="searchbox">
-  <input id="q" placeholder="输入标题、作者、关键词…" />
-  <button id="go">搜索</button>
-  <label class="hint"><input id="cloud" type="checkbox" checked /> 启用云端扩展</label>
-</section>
+    <section class="searchbox">
+      <input id="q" placeholder="输入标题、作者、关键词…" />
+      <button id="go">搜索</button>
+      <label class="hint"><input id="cloud" type="checkbox" checked /> 启用云端扩展</label>
+      <button id="reset" class="reset">重置筛选</button>
+    </section>
 
-<section class="filters">
-  <h3>文章类型</h3>
-  <TagChips items={tx.articleTypes} name="types" />
-  <h3>研究设计</h3>
-  <TagChips items={tx.studyDesigns} name="designs" />
-  <h3>关键词</h3>
-  <TagChips items={tx.keywords.slice(0,60)} name="kws" />
-</section>
+    <section class="filters">
+      <h3>文章类型</h3>
+      <TagChips items={tx.articleTypes} name="types" />
+      <h3>研究设计</h3>
+      <TagChips items={tx.studyDesigns} name="designs" />
+      <h3>关键词</h3>
+      <TagChips items={tx.keywords.slice(0,60)} name="kws" />
+    </section>
 
-<section id="res">
-  {first20.map(item => <PaperCard item={item} />)}
-</section>
+    <section class="summary" id="summary"></section>
+    <section id="res">
+      {first20.map(item => <PaperCard item={item} />)}
+    </section>
+  </main>
+  <!-- 构建期注入：本地 minisearch 数据 & 初始列表 -->
+  <script
+    type="application/json"
+    id="papers-local-data"
+    set:html={JSON.stringify(minis)}
+  ></script>
+  <script
+    type="application/json"
+    id="papers-initial-list"
+    set:html={JSON.stringify(first20)}
+  ></script>
+  <script
+    type="application/ld+json"
+    set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'SearchResultsPage',
+      name: pageTitle,
+      description: pageDesc,
+      url: canonical,
+      mainEntity: {
+        '@type': 'ItemList',
+        itemListElement: (first20 || []).map((p, idx) => {
+          const slug = p?.slug || p?.id || '';
+          const url = slug
+            ? Astro.site
+              ? new URL(`/papers/${slug}/`, Astro.site).toString()
+              : `/papers/${slug}/`
+            : canonical;
+          return {
+            '@type': 'ScholarlyArticle',
+            position: idx + 1,
+            headline: p.title_zh || p.title || '',
+            name: p.title_zh || p.title || '',
+            url,
+          };
+        }),
+      },
+    })}
+  />
+</BaseLayout>
 
 <style>
-h1{font-size:24px;margin:12px 0 16px}
-.searchbox{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-#q{flex:1;padding:10px 12px;border:1px solid #d1d5db;border-radius:10px}
-#go{padding:10px 14px;border:none;border-radius:10px;background:#0f2d5e;color:#fff}
-.hint{color:#4b5563;margin-left:8px}
-.filters h3{font-size:16px;margin:16px 0 8px}
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 14px;
+  cursor: pointer;
+}
+.chip.active {
+  background: #0f2d5e;
+  color: #fff;
+  border-color: #0f2d5e;
+}
+
+/* 搜索页标题/搜索框/提示 */
+h1[data-astro-cid-vx4zhtwr] {
+  font-size: 24px;
+  margin: 12px 0 16px;
+}
+.searchbox[data-astro-cid-vx4zhtwr] {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+#q[data-astro-cid-vx4zhtwr] {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+}
+#go[data-astro-cid-vx4zhtwr] {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #0f2d5e;
+  color: #fff;
+}
+.hint[data-astro-cid-vx4zhtwr] {
+  color: #4b5563;
+  margin-left: 8px;
+}
+.reset[data-astro-cid-vx4zhtwr] {
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #111827;
+}
+.filters[data-astro-cid-vx4zhtwr] h3[data-astro-cid-vx4zhtwr] {
+  font-size: 16px;
+  margin: 16px 0 8px;
+}
+.summary[data-astro-cid-vx4zhtwr] {
+  margin: 16px 0 8px;
+  color: #374151;
+  font-size: 14px;
+}
+.empty[data-astro-cid-vx4zhtwr] {
+  padding: 24px 12px;
+  color: #4b5563;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+}
 </style>
 
-<script>
-(async function(){
-  // === 关键改动：与 Comments.astro 一致的 apiBase 计算 ===
+<script is:inline>
+(() => {
+  // 1. 读取构建期注入的 JSON 数据
+  const localData = (() => {
+    const el = document.getElementById('papers-local-data');
+    if (!el) return [];
+    try { return JSON.parse(el.textContent || '[]'); } catch (e) { return []; }
+  })();
+
+  const initialList = (() => {
+    const el = document.getElementById('papers-initial-list');
+    if (!el) return [];
+    try { return JSON.parse(el.textContent || '[]'); } catch (e) { return []; }
+  })();
+
+  // 2. 云端 API 基本信息（可选）
   const meta = document.querySelector('meta[name="tcb-api-base"]');
-  const apiBase = (meta && meta.content ? meta.content.replace(/\/+$/, '') : location.origin);
+  const apiBase = meta && meta.content ? meta.content.replace(/\/+$/, '') : '';
+  const hasApi = !!apiBase;
 
-  // 云函数直连地址（与我们提供的 6 个云函数路径一致）
-  const API = {
-    taxonomy: `${apiBase}/papers/export/taxonomy`,
-    minis:    `${apiBase}/papers/export/minisearch`,
-    statkw:   `${apiBase}/papers/export/static-keywords`,
-    search:   `${apiBase}/papers/search`
-  };
+  let miniData = [...localData];
 
-  // 可选：MiniSearch（CDN 版，未加载成功时自动降级）
-  let mini = null, miniData = [];
-  try {
-    const MiniSearch = (await import('https://cdn.jsdelivr.net/npm/minisearch@7.1.0/dist/umd/index.min.js')).default;
-    miniData = await fetch(API.minis).then(r=>r.json()).catch(()=>[]);
-    mini = new MiniSearch({ fields:['title','title_en','journal','abstract','keywords'], storeFields:['*'] });
-    mini.addAll(miniData);
-  } catch(e) {
-    // 降级：后面会在实际搜索时做本地包含匹配
+  async function ensureMiniData() {
+    if (miniData.length || !hasApi) return;
+    try {
+      const res = await fetch(`${apiBase}/papers/export/minisearch`);
+      const json = await res.json();
+      if (Array.isArray(json) && json.length) {
+        const keyOf = (x) => x.id || x.slug || x.doi || x.title || '';
+        const byKey = new Map(localData.map(x => [keyOf(x), x]));
+        json.forEach(it => {
+          const k = keyOf(it);
+          if (k && !byKey.has(k)) localData.push(it);
+        });
+        miniData = [...localData];
+      }
+    } catch (e) {
+      miniData = [...localData];
+    }
   }
 
   const $q = document.getElementById('q');
   const $go = document.getElementById('go');
   const $cloud = document.getElementById('cloud');
   const $res = document.getElementById('res');
+  const $summary = document.getElementById('summary');
+  const $reset = document.getElementById('reset');
   const $filters = document.querySelectorAll('.chip-wrap');
 
-  function currentFilters(){
+  function currentFilters() {
     const obj = {};
     $filters.forEach(wrap => {
       const name = wrap.dataset.name;
-      const sel = [...wrap.querySelectorAll('.chip.active')].map(b=>b.dataset.v);
-      if (sel.length) obj[name] = sel;
+      const selected = Array.from(
+        wrap.querySelectorAll('.chip.active')
+      ).map(btn => btn.dataset.v);
+      if (selected.length) obj[name] = selected;
     });
     return obj;
   }
 
-  async function ensureLocalData() {
-    if (miniData.length) return;
-    try {
-      // 本地回退：再次尝试云端；若还是失败，退到构建期写入的 JSON（首屏已渲染一批）
-      miniData = await fetch(API.minis).then(r=>r.json());
-    } catch {
-      // 保留为空；首屏的 20 篇由服务器端 import 的数据已渲染
+  function render(items) {
+    const count = items.length;
+    $summary.textContent = `共 ${count} 条结果`;
+
+    if (!count) {
+      $res.innerHTML =
+        '<div class="empty">未找到符合条件的文献，请尝试调整关键词或清空筛选。</div>';
+      return;
     }
+
+    $res.innerHTML = items
+      .map((item) => {
+        const kwHtml = (item.keywords || [])
+          .map((k) => `<span class="chip">${k}</span>`)
+          .join('');
+        const authors = Array.isArray(item.authors)
+          ? item.authors.join(', ')
+          : item.authors || '';
+        const metaParts = [];
+
+        if (item.year) metaParts.push(item.year);
+        if (item.doi) {
+          const doi = item.doi.replace(/^https?:\/\/doi.org\//, '');
+          metaParts.push(
+            `<a href="https://doi.org/${doi}" target="_blank" rel="noopener">DOI</a>`
+          );
+        }
+        const metaLine = metaParts.length ? ' · ' + metaParts.join(' · ') : '';
+
+        const detailHref = item.slug
+          ? `/papers/${encodeURIComponent(item.slug)}/`
+          : '';
+
+        const showTitle = item.title_zh || item.title || '';
+
+        return `
+          <article class="paper">
+            <h3 class="title">
+              ${
+                detailHref
+                  ? `<a href="${detailHref}">${showTitle}</a>`
+                  : showTitle
+              }
+            </h3>
+            ${
+              item.title_en
+                ? `<div class="en">${item.title_en}</div>`
+                : ''
+            }
+            <div class="meta">
+              <span class="journal">${item.journal || ''}</span>${metaLine}
+            </div>
+            ${
+              authors
+                ? `<div class="authors">${authors}</div>`
+                : ''
+            }
+            ${
+              item.abstract
+                ? `<p class="abs">${item.abstract}</p>`
+                : ''
+            }
+            <div class="tags">${kwHtml}</div>
+          </article>
+        `;
+      })
+      .join('');
   }
 
-  async function search(){
-    const q = $q.value.trim();
-    const f = currentFilters();
+  async function search() {
+    await ensureMiniData();
+    const q = ($q.value || '').trim().toLowerCase();
+    const filters = currentFilters();
 
-    // 本地（MiniSearch 或简易包含）：
-    let local = [];
-    if (mini){
-      const res = mini.search(q || '', { prefix: true, fuzzy: 0.1 });
-      local = res.map(x=>x);
-    } else {
-      await ensureLocalData();
-      local = miniData.filter(it => {
-        const text = (it.title+' '+it.title_en+' '+it.journal+' '+(it.abstract||'')+' '+(it.keywords||[]).join(' ')).toLowerCase();
-        return !q || text.includes(q.toLowerCase());
+    let items = miniData;
+
+    if (q) {
+      items = items.filter((it) => {
+        const text = [
+          it.title,
+          it.title_en,
+          it.journal,
+          it.abstract,
+          ...(it.keywords || []),
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return text.includes(q);
       });
     }
-    if (f.types?.length)   local = local.filter(it => f.types.includes(it.article_type));
-    if (f.designs?.length) local = local.filter(it => f.designs.includes(it.study_design));
-    if (f.kws?.length)     local = local.filter(it => (it.keywords||[]).every(k=> f.kws.includes(k) || f.kws.some(s=>k.includes(s)) ));
 
-    // 云端扩展（与 Comments.astro 一样通过 apiBase 直连云函数）
-    let merged = local;
-    if ($cloud.checked){
-      const params = new URLSearchParams();
-      if (q) params.set('q', q);
-      if (f.types?.length) params.set('types', f.types.join(','));
-      if (f.designs?.length) params.set('designs', f.designs.join(','));
-      if (f.kws?.length) params.set('kws', f.kws.join(','));
-      try {
-        const cloud = await fetch(`${API.search}?${params}`).then(r=>r.json());
-        const byId = new Map(local.map(x=>[x.id,x]));
-        for (const it of (cloud.items||[])) if (!byId.has(it.id)) merged.push(it);
-      } catch(e){}
+    if (filters.types && filters.types.length) {
+      items = items.filter((it) => filters.types.includes(it.article_type));
+    }
+    if (filters.designs && filters.designs.length) {
+      items = items.filter((it) => filters.designs.includes(it.study_design));
+    }
+    if (filters.kws && filters.kws.length) {
+      items = items.filter((it) => {
+        const kws = it.keywords || [];
+        return kws.some((k) =>
+          filters.kws.some((sel) => k && k.includes(sel))
+        );
+      });
     }
 
-    // 渲染
-    $res.innerHTML = merged.map(item => `
-      <article class="paper">
-        <h3 class="title">${item.title||''}</h3>
-        ${item.title_en?`<div class="en">${item.title_en}</div>`:''}
-        <div class="meta">
-          <span class="journal">${item.journal||''}</span>
-          ${item.year?`<span class="dot">•</span>${item.year}`:''}
-          ${item.doi?`<span class="dot">•</span><a href="https://doi.org/${item.doi.replace(/^https?:\/\/doi.org\//,'')}" target="_blank">DOI</a>`:''}
-        </div>
-        ${item.authors?.length?`<div class="authors">${item.authors.join(', ')}</div>`:''}
-        ${item.abstract?`<p class="abs">${item.abstract}</p>`:''}
-        <div class="tags">${(item.keywords||[]).map(k=>`<span class="chip">${k}</span>`).join('')}</div>
-      </article>
-    `).join('');
+    // 可选：云端补充结果
+    if (hasApi && $cloud && $cloud.checked) {
+      try {
+        const params = new URLSearchParams();
+        if (q) params.set('q', q);
+        if (filters.types && filters.types.length)
+          params.set('types', filters.types.join(','));
+        if (filters.designs && filters.designs.length)
+          params.set('designs', filters.designs.join(','));
+        if (filters.kws && filters.kws.length)
+          params.set('kws', filters.kws.join(','));
+
+        const res = await fetch(
+          `${apiBase}/papers/search?` + params.toString()
+        );
+        const json = await res.json();
+        if (json && Array.isArray(json.items)) {
+          const byId = new Map(items.map((x) => [x.id, x]));
+          json.items.forEach((it) => {
+            if (it && !byId.has(it.id)) items.push(it);
+          });
+        }
+      } catch (e) {
+        // 云端失败时静默降级
+      }
+    }
+
+    render(items);
   }
 
-  $go.addEventListener('click', search);
+  function resetAll() {
+    if ($q) $q.value = '';
+    $filters.forEach((wrap) => {
+      wrap
+        .querySelectorAll('.chip.active')
+        .forEach((btn) => btn.classList.remove('active'));
+    });
+    render(initialList.slice());
+  }
+
+  // 初始渲染
+  render(initialList.slice());
+
+  if ($go) $go.addEventListener('click', search);
+  if ($q) {
+    $q.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        search();
+      }
+    });
+  }
+  if ($reset) $reset.addEventListener('click', resetAll);
+
+  // 只依赖 TagChips 内部派发的 chipchange 事件，不再在这里重复绑定点击
   document.addEventListener('chipchange', search);
 })();
 </script>
-

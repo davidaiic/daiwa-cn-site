@@ -12,6 +12,9 @@
 *.log
 .DS_Store
 
+# 项目规范和说明文档
+/docs/
+
 /apps/site/node_modules/
 /apps/site/.cache/
 /apps/site/dist/
@@ -21,4 +24,4 @@ functions/**/.cache/
 *.log
 .DS_Store
 
-apps/site/node_modules/
+/node_modules/

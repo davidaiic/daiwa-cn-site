@@ -1,31 +1,262 @@
 ---
-import PaperCard from '../../components/PaperCard.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PaperCard from '@/components/PaperCard.astro';
 
-// 从构建期写入的数据中读取（如果第一次为空，会生成空专题页，后续补数据再重构）
-let list = [], kws = [];
-try { list = (await import('../../data/papers_minisearch.json')).default } catch {}
-try { kws  = (await import('../../data/papers_static_keywords.json')).default } catch {}
+import minisearchJson from '../../data/papers_minisearch.json';
+import deletedJson from '../../data/papers_deleted.json';
+import staticKeywordsJson from '../../data/papers_static_keywords.json';
+import taxonomyJson from '../../data/paper_taxonomy.json';
 
-// 生成静态路径：默认用全部静态关键词；也可通过环境变量只构建部分
-export async function getStaticPaths(){
-  const only = (process.env.BUILD_ONLY_KWS || '').split(',').map(s=>s.trim()).filter(Boolean);
-  const use = only.length ? kws.filter(k => only.includes(k)) : kws;
-  return use.map(k => ({ params: { kw: k } }));
+export const prerender = true;
+
+// ---------- shared helpers (render-time) ----------
+function toArray(v) {
+  if (!v) return [];
+  return Array.isArray(v) ? v.filter(Boolean) : [v].filter(Boolean);
+}
+function normalizeKw(x) {
+  return String(x || '').trim();
+}
+function uniq(arr) {
+  return Array.from(new Set((arr || []).filter(Boolean)));
 }
 
-const { kw } = Astro.params;
-const items = list.filter(x =>
-  (x.keywords || []).includes(kw) ||
-  (x.title || '').includes(kw) ||
-  (x.abstract || '').includes(kw)
+// ---------- recommend ----------
+function scoreRec(candidate, ctx) {
+  const { seedKeywords, seedYear, seedArticleType, seedStudyDesign } = ctx;
+
+  let s = 0;
+  const candKeywords = new Set(
+    (toArray(candidate?.keywords_cn).length ? toArray(candidate?.keywords_cn) : toArray(candidate?.keywords))
+      .map((x) => String(x).toLowerCase().trim())
+      .filter(Boolean)
+  );
+
+  for (const kw of seedKeywords) {
+    if (candKeywords.has(String(kw).toLowerCase().trim())) s += 10;
+  }
+
+  if (seedArticleType && candidate.article_type && candidate.article_type === seedArticleType) s += 3;
+  if (seedStudyDesign && candidate.study_design && candidate.study_design === seedStudyDesign) s += 2;
+
+  const cy = typeof candidate.year === 'number' ? candidate.year : Number(candidate.year || 0);
+  if (seedYear && cy) {
+    const d = Math.abs(seedYear - cy);
+    s += Math.max(0, 5 - Math.min(5, d)); // 0~5
+  } else if (cy) {
+    s += 1;
+  }
+
+  return s;
+}
+
+function recommend(minis, ctx, excludeSlugs, limit = 8) {
+  const ex = new Set(excludeSlugs || []);
+  const pool = (minis || []).filter((x) => x && x.slug && !ex.has(x.slug));
+
+  const scored = pool
+    .map((c) => ({ c, s: scoreRec(c, ctx) }))
+    .sort(
+      (a, b) =>
+        b.s - a.s ||
+        (b.c.year || 0) - (a.c.year || 0) ||
+        String(a.c.slug).localeCompare(String(b.c.slug))
+    )
+    .map((x) => x.c);
+
+  return scored.slice(0, limit);
+}
+
+// ---------- getStaticPaths (IMPORTANT: keep helpers INSIDE to avoid undefined/tree-shake issues) ----------
+export async function getStaticPaths() {
+  const minis = (minisearchJson?.data || minisearchJson || []).filter(Boolean);
+
+  const toArrayL = (v) => (!v ? [] : Array.isArray(v) ? v.filter(Boolean) : [v].filter(Boolean));
+  const normalizeKwL = (x) => String(x || '').trim();
+  const uniqL = (arr) => Array.from(new Set((arr || []).filter(Boolean)));
+
+  // taxonomy keywords
+  const pickKeywordsFromTaxonomyL = (tax) => {
+    const t = tax?.data ? tax.data : tax;
+    return toArrayL(t?.keywords || t?.paperKeywords || t?.filters?.keywords);
+  };
+
+  // static keywords (allow string[] or object[])
+  const parseStaticKwObjsL = (rawIn) => {
+    const raw = rawIn?.data ? rawIn.data : rawIn;
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((x) => {
+        if (typeof x === 'string') return { kw: x, enabled: true, order: 0 };
+        if (x && typeof x === 'object') {
+          return {
+            kw: x.kw || x.value || x.label || x._id,
+            enabled: x.enabled !== false,
+            order: Number.isFinite(Number(x.order)) ? Number(x.order) : 0,
+          };
+        }
+        return null;
+      })
+      .filter((x) => x && x.kw);
+  };
+
+  const getKeywordsFromMinisL = (minisIn) => {
+    const kws = [];
+    for (const m of minisIn || []) {
+      const arr = toArrayL(m?.keywords_cn).length ? toArrayL(m?.keywords_cn) : toArrayL(m?.keywords);
+      for (const k of arr) kws.push(normalizeKwL(k));
+    }
+    return uniqL(kws).filter(Boolean);
+  };
+
+  const taxKws = pickKeywordsFromTaxonomyL(taxonomyJson).map(normalizeKwL);
+  const staticObjs = parseStaticKwObjsL(staticKeywordsJson);
+  const staticKws = staticObjs.map((x) => normalizeKwL(x.kw));
+  const miniKws = getKeywordsFromMinisL(minis);
+
+  const allKeywords = uniqL([...taxKws, ...staticKws, ...miniKws]).filter(Boolean);
+
+  const kwToPathL = (raw) =>
+    normalizeKwL(raw)
+      .replaceAll('/', '／')
+      .replaceAll('\\', '＼')
+      .replaceAll(':', '：')
+      .replaceAll('?', '？')
+      .replaceAll('*', '＊')
+      .replaceAll('"', '＂')
+      .replaceAll('<', '＜')
+      .replaceAll('>', '＞')
+      .replaceAll('|', '｜');
+
+  // static kw map uses RAW keyword (not path keyword)
+  const staticMap = new Map(staticObjs.map((x) => [normalizeKwL(x.kw), x]));
+
+  // de-dup by PATH keyword (because '/' 会变成目录分隔符导致构建失败)
+  const byPath = new Map();
+  for (const rawKw of allKeywords) {
+    const kwRaw = normalizeKwL(rawKw);
+    if (!kwRaw) continue;
+
+    const kwPath = kwToPathL(kwRaw);
+    if (!kwPath) continue;
+
+    const s = staticMap.get(kwRaw);
+    const enabled = s ? s.enabled !== false : true;
+    const isStatic = Boolean(s);
+    const order = s ? (s.order || 0) : 0;
+
+    const existing = byPath.get(kwPath);
+    if (!existing) {
+      byPath.set(kwPath, { kwPath, kwLabel: kwRaw, enabled, isStatic, order });
+      continue;
+    }
+
+    // 冲突时：优先 static 关键词；static 内部按 order 小者优先
+    const better =
+      (isStatic && !existing.isStatic) ||
+      (isStatic && existing.isStatic && order < (existing.order || 0));
+
+    if (better) byPath.set(kwPath, { kwPath, kwLabel: kwRaw, enabled, isStatic, order });
+  }
+
+  return Array.from(byPath.values()).map((x) => ({
+    params: { kw: x.kwPath },
+    props: { enabled: x.enabled, isStatic: x.isStatic, order: x.order, kwLabel: x.kwLabel },
+  }));
+}
+
+// ---------- page data ----------
+const kwPath = decodeURIComponent(Astro.params.kw || '');
+const { kwLabel: kwLabelFromProps = '' } = Astro.props || {};
+const kw = (kwLabelFromProps ? String(kwLabelFromProps) : kwPath.replaceAll('／','/').replaceAll('＼','\\')).trim();
+const { enabled = true } = Astro.props || {};
+
+const minisearch = (minisearchJson?.data || minisearchJson || []).filter(Boolean);
+const deleted = (deletedJson?.data || deletedJson || []).filter(Boolean);
+const deletedSet = new Set(deleted.map((x) => String(x.slug || x._id || '').trim()).filter(Boolean));
+
+const itemsAll = minisearch.filter((x) => x && x.slug && !deletedSet.has(String(x.slug).trim()));
+
+// 本专题列表
+const items = itemsAll.filter((x) => {
+  const kws = toArray(x.keywords_cn).length ? toArray(x.keywords_cn) : toArray(x.keywords);
+  return kws.map((k) => String(k)).includes(kw);
+});
+
+// 共现关键词 seeds
+const seedFreq = new Map();
+for (const it of items) {
+  const kws = toArray(it.keywords_cn).length ? toArray(it.keywords_cn) : toArray(it.keywords);
+  for (const k of kws) {
+    const kk = String(k).trim();
+    if (!kk || kk === kw) continue;
+    seedFreq.set(kk, (seedFreq.get(kk) || 0) + 1);
+  }
+}
+const coSeeds = Array.from(seedFreq.entries())
+  .sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0])))
+  .slice(0, 8)
+  .map(([k]) => k);
+
+const years = items.map((x) => Number(x.year || 0)).filter(Boolean);
+const seedYear = years.length ? Math.round(years.reduce((a, b) => a + b, 0) / years.length) : null;
+
+const seedArticleType = items.find((x) => x.article_type)?.article_type || '';
+const seedStudyDesign = items.find((x) => x.study_design)?.study_design || '';
+
+const recs = recommend(
+  itemsAll,
+  {
+    seedKeywords: [kw, ...coSeeds],
+    seedYear,
+    seedArticleType,
+    seedStudyDesign,
+  },
+  items.map((x) => x.slug),
+  8
 );
+
+const pageTitle = enabled ? `专题：${kw}` : `专题已下线：${kw}`;
 ---
 
-<h1>专题：{kw}</h1>
-<section>
-  {items.length ? items.map(item => <PaperCard item={item} />) : <p>暂无该专题的文章。</p>}
-</section>
+<BaseLayout title={pageTitle} description={`${kw} 相关文献`}>
+  {enabled ? (
+    <section class="container mx-auto px-4 py-10">
+      <h1 class="text-3xl font-bold mb-2">专题：{kw}</h1>
+      <p class="text-gray-600 mb-8">共 {items.length} 条结果</p>
 
-<style>
-h1{font-size:22px;margin:12px 0 16px}
-</style>
+      <div class="space-y-4">
+        {items.length ? items.map((item) => <PaperCard item={item} />) : (
+          <div class="text-gray-600">暂无该专题的文章。</div>
+        )}
+      </div>
+
+      {recs.length > 0 && (
+        <div class="mt-12">
+          <h2 class="text-xl font-bold mb-4">推荐阅读</h2>
+          <div class="space-y-4">
+            {recs.map((item) => <PaperCard item={item} />)}
+          </div>
+        </div>
+      )}
+    </section>
+  ) : (
+    <section class="container mx-auto px-4 py-10">
+      <meta name="robots" content="noindex,follow" />
+      <h1 class="text-3xl font-bold mb-2">该专题已下线</h1>
+      <p class="text-gray-600 mb-8">
+        你访问的专题 <span class="font-semibold">{kw}</span> 已被停用（soft 404）。
+        你仍然可以继续浏览站内其它文献。
+      </p>
+
+      {recs.length > 0 && (
+        <div>
+          <h2 class="text-xl font-bold mb-4">推荐阅读</h2>
+          <div class="space-y-4">
+            {recs.map((item) => <PaperCard item={item} />)}
+          </div>
+        </div>
+      )}
+    </section>
+  )}
+</BaseLayout>
