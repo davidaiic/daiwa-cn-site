@@ -8,35 +8,83 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
     env:
-      # 让 cloudbaserc.json 里的 {{env.envId}} 能取到值
-      envId: ${{ secrets.ENVID }}
-
-      # 登录用（你仓库里现有的 secrets）
-      TCB_SECRET_ID: ${{ secrets.SECRETID }}
-      TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
-
-      # 推荐加上，避免 CLI 进入交互模式
-      CI: "true"
-
-      # 你项目 build 里用到的变量（按你现状保留）
+      CI: true
       PUBLIC_BASE: /
       PUBLIC_CANONICAL_HOST: ${{ vars.PUBLIC_CANONICAL_HOST }}
       PUBLIC_TCB_API_BASE: ${{ vars.PUBLIC_TCB_API_BASE }}
       PUSH_TO_SEARCH: ${{ vars.PUSH_TO_SEARCH }}
 
-    steps:
-      - uses: actions/checkout@v4
+      TCB_ENV_ID: ${{ secrets.ENVID }}
+      TCB_SECRET_ID: ${{ secrets.SECRETID }}
+      TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20 (Astro build + tcb cli)
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            apps/site/package-lock.json
+            functions/**/package-lock.json
+            package-lock.json
+
+      - name: Install site deps
+        shell: bash
+        run: |
+          set -e
+          if [ -f "apps/site/package-lock.json" ]; then
+            npm ci --prefix apps/site --no-audit --no-fund
+          else
+            npm ci --no-audit --no-fund
+          fi
+
+      - name: Build (Astro)
+        shell: bash
+        run: |
+          set -e
+          node apps/site/scripts/sync-papers-data.mjs || echo "[cloudbase] sync-papers-data failed, fallback to local"
+          npm --prefix apps/site run build
 
       - name: Install CloudBase CLI
+        shell: bash
         run: npm i -g @cloudbase/cli --no-audit --no-fund
 
       - name: Login (non-interactive)
+        shell: bash
         run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
 
-      - name: Deploy (hosting + functions) via framework
-        run: tcb framework deploy --verbose
+      - name: Deploy hosting
+        shell: bash
+        run: tcb hosting deploy apps/site/dist -e "$envId"
+
+      - name: Install deps & deploy functions
+        shell: bash
+        run: |
+          set -e
+
+          if [ ! -d "functions" ]; then
+            echo "No functions/ directory, skip."
+            exit 0
+          fi
+
+          for d in functions/*; do
+            [ -d "$d" ] || continue
+            name="$(basename "$d")"
+
+            if [ -f "$d/package.json" ]; then
+              echo "==> npm ci (functions/$name)"
+              npm ci --prefix "$d" --omit=dev --no-audit --no-fund || \
+              npm i  --prefix "$d" --omit=dev --no-audit --no-fund
+            fi
+
+            echo "==> deploy function: $name"
+            tcb fn deploy "$name" --dir "$d" -e "$envId" --force
+          done

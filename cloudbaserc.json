@@ -9,7 +9,36 @@
         "inputs": {
           "installCommand": "npm ci || npm i",
           "buildCommand": "node apps/site/scripts/sync-papers-data.mjs || echo '[cloudbase] sync-papers-data failed, fallback to local'; npm --prefix apps/site run build",
-          "outputPath": "apps/site/dist"
+          "outputPath": "apps/site/dist",
+          "cloudPath": "/"
+        }
+      },
+      "functions": {
+        "use": "@cloudbase/framework-plugin-function",
+        "inputs": {
+          "functionRootPath": "functions",
+          "functions": [
+            {
+              "name": "comment-list",
+              "runtime": "Nodejs12.16",
+              "installDependency": true
+            },
+            {
+              "name": "comment-post",
+              "runtime": "Nodejs12.16",
+              "installDependency": true
+            },
+            {
+              "name": "comment-hot",
+              "runtime": "Nodejs12.16",
+              "installDependency": true
+            }
+          ],
+          "servicePaths": {
+            "comment-post": "/api/comment-post",
+            "comment-list": "/api/comment-list",
+            "comment-hot": "/api/comment-hot"
+          }
         }
       }
     }
