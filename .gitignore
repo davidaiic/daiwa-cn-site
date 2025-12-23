@@ -26,3 +26,7 @@ functions/**/.cache/
 
 /node_modules/
 .vs/
+.vscode/
+
+# npm 会在 node_modules 里生成这个
+**/node_modules/.package-lock.json
