@@ -61,29 +61,30 @@ jobs:
         shell: bash
         run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
 
-      - name: Install framework plugins (no-save)
-        shell: bash
-        run: |
-          set -e
-          # 确保 framework 能 require 到插件（不改 package.json / lockfile）
-          npm i --no-save --no-audit --no-fund \
-            @cloudbase/framework-plugin-website \
-            @cloudbase/framework-plugin-function
-
       - name: Deploy hosting
         shell: bash
         run: tcb hosting deploy apps/site/dist -e "$envId"
 
-      - name: Deploy via framework (prefer functions-only)
+      - name: Deploy functions (Nodejs12.16, no framework)
         shell: bash
         run: |
           set -e
-          if tcb framework deploy -h 2>&1 | grep -q -- '--only'; then
-            echo "[cloudbase] framework supports --only, deploy functions only"
-            tcb framework deploy -e "$envId" --only functions
-          else
-            echo "[cloudbase] framework has no --only, fallback to full deploy"
-            tcb framework deploy -e "$envId"
-          fi
+
+          # 逐个函数部署（只部署这三个）
+          for name in comment-list comment-post comment-hot; do
+            d="functions/$name"
+            echo "==> deploy function: $name"
+
+            # 依赖安装：有 lock 就 ci；没 lock 就 i（避免 npm ci 报错）
+            if [ -f "$d/package-lock.json" ]; then
+              npm ci --prefix "$d" --omit=dev --no-audit --no-fund
+            else
+              npm i  --prefix "$d" --omit=dev --no-audit --no-fund
+            fi
+
+            # 关键：强制 runtime=Nodejs12.16，避免触发“修改 runtime”
+            tcb fn deploy "$name" --dir "$d" -e "$envId" --force --runtime Nodejs12.16
+          done
+
 
 
