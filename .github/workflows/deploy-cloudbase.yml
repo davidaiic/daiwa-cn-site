@@ -2,78 +2,41 @@ name: deploy
 
 on:
   push:
-    branches: [ main ]
-
-concurrency:
-  group: deploy-main
-  cancel-in-progress: true
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-
     env:
+      # 让 cloudbaserc.json 里的 {{env.envId}} 能取到值
+      envId: ${{ secrets.ENVID }}
+
+      # 登录用（你仓库里现有的 secrets）
+      TCB_SECRET_ID: ${{ secrets.SECRETID }}
+      TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
+
+      # 推荐加上，避免 CLI 进入交互模式
+      CI: "true"
+
+      # 你项目 build 里用到的变量（按你现状保留）
       PUBLIC_BASE: /
       PUBLIC_CANONICAL_HOST: ${{ vars.PUBLIC_CANONICAL_HOST }}
       PUBLIC_TCB_API_BASE: ${{ vars.PUBLIC_TCB_API_BASE }}
       PUSH_TO_SEARCH: ${{ vars.PUSH_TO_SEARCH }}
 
-      # 关键：映射你仓库里现有的 secrets 名
-      TCB_ENV_ID: ${{ secrets.ENVID }}
-      TCB_SECRET_ID: ${{ secrets.SECRETID }}
-      TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Guard (fail fast if secrets missing)
-        run: |
-          if [ -z "${TCB_ENV_ID}" ] || [ -z "${TCB_SECRET_ID}" ] || [ -z "${TCB_SECRET_KEY}" ]; then
-            echo "Missing secrets: please ensure ENVID/SECRETID/SECRETKEY exist in Settings -> Secrets and variables -> Actions."
-            exit 1
-          fi
-
-      # 只装 apps/site 的依赖（别在根目录装）
-      - name: Install deps (apps/site)
-        working-directory: apps/site
-        run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install --no-audit --no-fund
-          fi
-
-      - name: Build (apps/site)
-        working-directory: apps/site
-        run: npm run build
 
       - name: Install CloudBase CLI
         run: npm i -g @cloudbase/cli --no-audit --no-fund
 
       - name: Login (non-interactive)
-        run: tcb login --apiKeyId "${TCB_SECRET_ID}" --apiKey "${TCB_SECRET_KEY}"
+        run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
 
-      # 部署静态托管：把 apps/site/dist 推到托管根目录
-      - name: Deploy hosting
-        working-directory: apps/site
-        run: tcb hosting deploy dist -e "${TCB_ENV_ID}"
-
-      # 循环部署 functions/ 下每个子目录（函数名=目录名）
-      - name: Deploy all functions (loop)
-        run: |
-          set -e
-          for d in functions/*; do
-            if [ -d "$d" ]; then
-              name="$(basename "$d")"
-              echo "Deploy function: $name from $d"
-              # 说明：不同 CLI 版本参数可能略有差异；若这里报参数错误，改成 tcb fn deploy "$name" --path "$d"
-              tcb fn deploy "$name" --dir "$d" -e "${TCB_ENV_ID}" --force
-            fi
-          done
+      - name: Deploy (hosting + functions) via framework
+        run: tcb framework deploy --verbose
