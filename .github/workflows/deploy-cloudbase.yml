@@ -23,11 +23,6 @@ jobs:
       TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
 
     steps:
-      - name: Show tcb versions
-        run: |
-          tcb -v
-          tcb framework -h | head -n 40
-
       - name: Checkout
         uses: actions/checkout@v4
 
