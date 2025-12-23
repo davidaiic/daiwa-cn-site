@@ -25,3 +25,4 @@ functions/**/.cache/
 .DS_Store
 
 /node_modules/
+.vs/

@@ -1,4 +1,4 @@
-name: Deploy to CloudBase
+name: deploy
 
 on:
   push:
@@ -6,22 +6,22 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
-    # 把 GitHub Actions 的 Repository variables 注入到构建环境
     env:
       PUBLIC_BASE: /
-      PUBLIC_CANONICAL_HOST: ${{ vars.PUBLIC_CANONICAL_HOST }}
-      PUBLIC_TCB_API_BASE: ${{ vars.PUBLIC_TCB_API_BASE }}
+      PUBLIC_CANONICAL_HOST: https://www.daiwa-pharm.com.cn
+      PUBLIC_TCB_API_BASE: ${{ secrets.PUBLIC_TCB_API_BASE }}
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/site/package-lock.json
 
-      # 安装依赖：有 lockfile 就用 npm ci；否则用 npm install
       - name: Install deps (apps/site)
         working-directory: apps/site
         run: |
@@ -31,28 +31,24 @@ jobs:
             npm install --no-audit --no-fund
           fi
 
-      # ✅ 关键：先生成 papers 所需的 src/data/*.json（否则 Astro build 会找不到 paper_taxonomy.json）
-      - name: Sync papers data
-        working-directory: apps/site
-        run: |
-          node scripts/sync-papers-data.mjs
-
-      - name: Build (Astro)
+      - name: Build (apps/site)
         working-directory: apps/site
         run: npm run build
 
-      - name: List dist
-        run: |
-          ls -la apps/site/dist
-          echo "------"
-          find apps/site/dist -maxdepth 2 -type f | head -n 80
+      - name: Install CloudBase CLI
+        run: npm install -g @cloudbase/cli --no-audit --no-fund --loglevel=error
 
-      - name: Deploy to Tencent CloudBase
-        uses: TencentCloudBase/cloudbase-action@v2.0.1
-        with:
-          secretId: ${{ secrets.SECRETID }}
-          secretKey: ${{ secrets.SECRETKEY }}
-          envId: ${{ secrets.ENVID }}
-          command: framework deploy
+      - name: Login
         env:
-          envId: ${{ secrets.ENVID }}
+          TCB_SECRET_ID: ${{ secrets.TCB_SECRET_ID }}
+          TCB_SECRET_KEY: ${{ secrets.TCB_SECRET_KEY }}
+        run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+
+      - name: Deploy hosting
+        env:
+          TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
+        run: |
+          # 不同版本 CLI 命令可能是 hosting:deploy / hosting deploy
+          # 先尝试 hosting:deploy，失败再退回 hosting deploy
+          tcb hosting:deploy apps/site/dist -e "$TCB_ENV_ID" || \
+          tcb hosting deploy apps/site/dist -e "$TCB_ENV_ID"
