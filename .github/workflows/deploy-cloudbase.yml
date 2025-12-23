@@ -65,26 +65,23 @@ jobs:
         shell: bash
         run: tcb hosting deploy apps/site/dist -e "$envId"
 
-      - name: Deploy functions (Nodejs12.16, no framework)
+      - name: Deploy functions (Nodejs12.16, stable)
         shell: bash
         run: |
           set -e
 
-          # 逐个函数部署（只部署这三个）
           for name in comment-list comment-post comment-hot; do
             d="functions/$name"
             echo "==> deploy function: $name"
 
-            # 依赖安装：有 lock 就 ci；没 lock 就 i（避免 npm ci 报错）
             if [ -f "$d/package-lock.json" ]; then
               npm ci --prefix "$d" --omit=dev --no-audit --no-fund
             else
               npm i  --prefix "$d" --omit=dev --no-audit --no-fund
             fi
 
-            # 关键：强制 runtime=Nodejs12.16，避免触发“修改 runtime”
-            tcb fn deploy "$name" --dir "$d" -e "$envId" --force --runtime Nodejs12.16
+            # 只做代码上传，不碰 runtime
+            tcb fn deploy "$name" --dir "$d" -e "$envId" --force
           done
-
 
 
