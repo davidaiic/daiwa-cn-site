@@ -18,7 +18,7 @@ jobs:
       PUBLIC_TCB_API_BASE: ${{ vars.PUBLIC_TCB_API_BASE }}
       PUSH_TO_SEARCH: ${{ vars.PUSH_TO_SEARCH }}
 
-      TCB_ENV_ID: ${{ secrets.ENVID }}
+      envId: ${{ secrets.ENVID }}
       TCB_SECRET_ID: ${{ secrets.SECRETID }}
       TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
 
