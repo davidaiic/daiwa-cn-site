@@ -61,6 +61,15 @@ jobs:
         shell: bash
         run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
 
+      - name: Install framework plugins (no-save)
+        shell: bash
+        run: |
+          set -e
+          # 确保 framework 能 require 到插件（不改 package.json / lockfile）
+          npm i --no-save --no-audit --no-fund \
+            @cloudbase/framework-plugin-website \
+            @cloudbase/framework-plugin-function
+
       - name: Deploy hosting
         shell: bash
         run: tcb hosting deploy apps/site/dist -e "$envId"
