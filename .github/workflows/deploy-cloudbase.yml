@@ -65,26 +65,9 @@ jobs:
         shell: bash
         run: tcb hosting deploy apps/site/dist -e "$envId"
 
-      - name: Install deps & deploy functions
+      - name: Deploy functions (framework, Nodejs12.16)
         shell: bash
         run: |
           set -e
-
-          if [ ! -d "functions" ]; then
-            echo "No functions/ directory, skip."
-            exit 0
-          fi
-
-          for d in functions/*; do
-            [ -d "$d" ] || continue
-            name="$(basename "$d")"
-
-            if [ -f "$d/package.json" ]; then
-              echo "==> npm ci (functions/$name)"
-              npm ci --prefix "$d" --omit=dev --no-audit --no-fund || \
-              npm i  --prefix "$d" --omit=dev --no-audit --no-fund
-            fi
-
-            echo "==> deploy function: $name"
-            tcb fn deploy "$name" --dir "$d" -e "$envId" --force
-          done
+          # 让 framework-plugin-function 按 cloudbaserc.json 的 runtime=Nodejs12.16 部署
+          tcb framework deploy -e "$envId" --only functions
