@@ -52,14 +52,43 @@ jobs:
             cloudbase login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
           fi
 
-      - name: Deploy by CloudBase Framework (verbose)
+      - name: Fix DNS in container (workaround for EAI_AGAIN)
         shell: bash
         run: |
           set -e
-          # 这一步会读取 cloudbaserc.json，自动跑 website + functions
-          # 并按你 cloudbaserc.json 固定的 Nodejs12.16 部署 functions
-          if command -v tcb >/dev/null 2>&1; then
-            tcb framework deploy --verbose
-          else
-            cloudbase framework deploy --verbose
+          echo "[dns] before:"
+          cat /etc/resolv.conf || true
+          # 覆盖为公共 DNS（容器内通常可写）
+          printf "nameserver 1.1.1.1\nnameserver 8.8.8.8\n" > /etc/resolv.conf
+          echo "[dns] after:"
+          cat /etc/resolv.conf || true
+
+      - name: Deploy by CloudBase Framework (verbose, retry)
+        shell: bash
+        run: |
+          set -e
+          export NODE_OPTIONS="--dns-result-order=ipv4first"
+
+          cmd="tcb framework deploy --verbose"
+          if ! command -v tcb >/dev/null 2>&1; then
+            cmd="cloudbase framework deploy --verbose"
           fi
+
+          echo "[deploy] cmd: $cmd"
+
+          rc=0
+          for i in 1 2 3 4 5; do
+            echo "[deploy] attempt $i/5"
+            if eval "$cmd"; then
+              echo "[deploy] success"
+              exit 0
+            fi
+            rc=$?
+            wait=$((i*10))
+            echo "[deploy] failed (rc=$rc), retry in ${wait}s..."
+            sleep "$wait"
+          done
+
+          echo "[deploy] failed after retries (rc=$rc)"
+          exit "$rc"
+
