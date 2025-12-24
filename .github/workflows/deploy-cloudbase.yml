@@ -2,77 +2,64 @@ name: deploy
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   deploy:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
+    runs-on: ubuntu-latest
+
+    # 关键：使用腾讯云官方 CI runner 镜像（内置 framework + 所有官方插件）
+    container:
+      image: tencentcloudbase/cloudbase-framework-runner:latest
 
     env:
       CI: true
+
+      # 关键：cloudbaserc.json 里写的是 {{env.envId}}，所以这里必须叫 envId
+      envId: ${{ secrets.ENVID }}
+
+      # 你的登录密钥
+      TCB_SECRET_ID: ${{ secrets.SECRETID }}
+      TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
+
+      # 你站点构建用到的环境变量（沿用你现有的）
       PUBLIC_BASE: /
       PUBLIC_CANONICAL_HOST: ${{ vars.PUBLIC_CANONICAL_HOST }}
       PUBLIC_TCB_API_BASE: ${{ vars.PUBLIC_TCB_API_BASE }}
-      PUSH_TO_SEARCH: ${{ vars.PUSH_TO_SEARCH }}
-
-      envId: ${{ secrets.ENVID }}
-      TCB_SECRET_ID: ${{ secrets.SECRETID }}
-      TCB_SECRET_KEY: ${{ secrets.SECRETKEY }}
+      PUSH_TO_SEARCH: "false"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20 (Astro build + tcb cli)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: |
-            apps/site/package-lock.json
-            functions/**/package-lock.json
-            package-lock.json
-
-      - name: Install site deps
+      # 镜像里一般已经有 node/npm，但加这一步可以打印版本，便于排查
+      - name: Show versions
         shell: bash
         run: |
-          set -e
-          if [ -f "apps/site/package-lock.json" ]; then
-            npm ci --prefix apps/site --no-audit --no-fund
-          else
-            npm ci --no-audit --no-fund
-          fi
-
-      - name: Build (Astro)
-        shell: bash
-        run: |
-          set -e
-          node apps/site/scripts/sync-papers-data.mjs || echo "[cloudbase] sync-papers-data failed, fallback to local"
-          npm --prefix apps/site run build
-
-      - name: Install CloudBase CLI
-        shell: bash
-        run: npm i -g @cloudbase/cli --no-audit --no-fund
+          node -v
+          npm -v
+          cloudbase -v || true
 
       - name: Login (non-interactive)
         shell: bash
-        run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+        run: |
+          set -e
+          # 兼容 cloudbase / tcb 两种命令名（不同版本会有别名）
+          if command -v tcb >/dev/null 2>&1; then
+            tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+          else
+            cloudbase login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+          fi
 
-      - name: Deploy hosting
+      - name: Deploy by CloudBase Framework (verbose)
         shell: bash
-        run: tcb hosting deploy apps/site/dist -e "$envId"
-
-      - name: Deploy to Tencent CloudBase
-        uses: TencentCloudBase/cloudbase-action@v2.0.1
-        with:
-          secretId: ${{ secrets.SECRETID }}
-          secretKey: ${{ secrets.SECRETKEY }}
-          envId: ${{ secrets.ENVID }}
-        env:
-          envId: ${{ secrets.ENVID }}
-
-
-
+        run: |
+          set -e
+          # 这一步会读取 cloudbaserc.json，自动跑 website + functions
+          # 并按你 cloudbaserc.json 固定的 Nodejs12.16 部署 functions
+          if command -v tcb >/dev/null 2>&1; then
+            tcb framework deploy --verbose
+          else
+            cloudbase framework deploy --verbose
+          fi
