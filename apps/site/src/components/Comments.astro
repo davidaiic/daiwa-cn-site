@@ -25,8 +25,8 @@ const { articleId } = Astro.props;
         return;
       }
 
-      const listApi = `${apiBase}/api/comment-list`;
-      const postApi = `${apiBase}/api/comment-post`;
+      const listApi = `${apiBase}/comment-list`;
+      const postApi = `${apiBase}/comment-post`;
 
     function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}
 
