@@ -65,23 +65,14 @@ jobs:
         shell: bash
         run: tcb hosting deploy apps/site/dist -e "$envId"
 
-      - name: Deploy functions (Nodejs12.16, stable)
-        shell: bash
-        run: |
-          set -e
+      - name: Deploy to Tencent CloudBase
+        uses: TencentCloudBase/cloudbase-action@v2.0.1
+        with:
+          secretId: ${{ secrets.SECRETID }}
+          secretKey: ${{ secrets.SECRETKEY }}
+          envId: ${{ secrets.ENVID }}
+        env:
+          envId: ${{ secrets.ENVID }}
 
-          for name in comment-list comment-post comment-hot; do
-            d="functions/$name"
-            echo "==> deploy function: $name"
-
-            if [ -f "$d/package-lock.json" ]; then
-              npm ci --prefix "$d" --omit=dev --no-audit --no-fund
-            else
-              npm i  --prefix "$d" --omit=dev --no-audit --no-fund
-            fi
-
-            # 只做代码上传，不碰 runtime
-            tcb fn deploy "$name" --dir "$d" -e "$envId" --force
-          done
 
 
