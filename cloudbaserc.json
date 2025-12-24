@@ -7,7 +7,7 @@
       "website": {
         "use": "@cloudbase/framework-plugin-website",
         "inputs": {
-          "installCommand": "npm ci || npm i",
+          "installCommand": "npm ci --prefix apps/site --no-audit --no-fund || npm i --prefix apps/site --no-audit --no-fund",
           "buildCommand": "npm --prefix apps/site run build",
           "outputPath": "apps/site/dist",
           "cloudPath": "/"
